@@ -170,6 +170,11 @@ def main():
     st.sidebar.markdown(f"**Version : {version}**")
     st.sidebar.markdown("---")
 
+    # Sélection de l'utilisateur
+    st.sidebar.subheader("👤 Utilisateur")
+    utilisateur = st.sidebar.radio("Qui êtes-vous ?", ["Michel", "Romain", "Roger"], index=0)
+    st.sidebar.markdown("---")
+
     # Bouton d'aide
     show_help = st.sidebar.button("❓ Aide & Documentation")
 
@@ -191,21 +196,36 @@ def main():
     # Choix de l'action - tout visible par défaut
     st.sidebar.header("🎯 Sélection rapide")
 
-    # Actions avec noms complets et boutons visibles
-    actions_disponibles = {
-        "^GSPC": "📈 S&P 500",
-        "SATS": "🛰️ EchoStar",
-        "DBX": "☁️ Dropbox",
-        "COIN": "₿ Coinbase",
-        "PYPL": "💳 PayPal",
-        "ZM": "🎥 Zoom",
-        "MSFT": "🖥️ Microsoft",
-        "AAPL": "📱 Apple",
-        "TSLA": "🚗 Tesla",
-        "NFLX": "🎬 Netflix",
-        "AMZN": "📦 Amazon",
-        "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+    # Actions disponibles par utilisateur
+    actions_par_utilisateur = {
+        "Michel": {
+            "^GSPC": "📈 S&P 500",
+            "MSFT": "�️ Microsoft",
+            "AAPL": "📱 Apple",
+            "AMZN": "📦 Amazon",
+            "GOOGL": "🔍 Google",
+            "META": "📘 Meta"
+        },
+        "Romain": {
+            "TSLA": "🚗 Tesla",
+            "NFLX": "🎬 Netflix",
+            "COIN": "₿ Coinbase",
+            "PYPL": "💳 PayPal",
+            "ZM": "🎥 Zoom",
+            "DBX": "☁️ Dropbox"
+        },
+        "Roger": {
+            "SATS": "�️ EchoStar",
+            "PANX.PA": "� Amundi NASDAQ-100 ETF",
+            "NVDA": "� NVIDIA",
+            "AMD": "� AMD",
+            "INTC": "� Intel",
+            "IBM": "🤖 IBM"
+        }
     }
+
+    # Actions disponibles pour l'utilisateur courant
+    actions_disponibles = actions_par_utilisateur[utilisateur]
 
     # Afficher tous les boutons visibles
     st.sidebar.write("**Sélectionnez une action :**")
@@ -243,34 +263,47 @@ def main():
         except:
             return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
 
-    # Créer les boutons avec fonds colorés
+    # Créer les boutons avec vraies couleurs de fond
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
 
         # Obtenir la couleur de recommandation
         bg_color, signal = get_recommendation_signal(ticker)
 
-        # Créer un conteneur avec fond coloré
-        with col.container():
-            # Style CSS pour le fond
-            st.markdown(f"""
-            <div style="
-                background-color: {bg_color};
-                padding: 8px;
-                border-radius: 4px;
-                margin-bottom: 8px;
-                border: 1px solid #ddd;
-            ">
-            </div>
-            """, unsafe_allow_html=True)
+        # Créer un bouton HTML avec fond coloré
+        button_html = f"""
+        <style>
+        .btn-{ticker.lower().replace('.', '').replace('^', '')} {{
+            background-color: {bg_color} !important;
+            color: black !important;
+            border: 2px solid {bg_color} !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            width: 100% !important;
+            font-weight: bold !important;
+            margin-bottom: 8px !important;
+            text-align: center !important;
+            cursor: pointer !important;
+        }}
+        .btn-{ticker.lower().replace('.', '').replace('^', '')}:hover {{
+            opacity: 0.8 !important;
+        }}
+        </style>
+        <button class="btn-{ticker.lower().replace('.', '').replace('^', '')}" onclick="window.location.reload()">
+            {nom}
+        </button>
+        """
 
-            # Bouton par-dessus le fond
-            if st.button(nom, key=f"btn_{ticker}", use_container_width=True, help=f"Signal: {signal}"):
-                selected_ticker = ticker
+        # Afficher le bouton et détecter le clic
+        col.markdown(button_html, unsafe_allow_html=True)
+
+        # Pour la détection de clic, on utilise une approche alternative
+        if col.checkbox(f"Sélectionner {nom}", key=f"check_{ticker}", help=f"Signal: {signal}"):
+            selected_ticker = ticker
 
     # Option personnalisée en dessous
     st.sidebar.markdown("---")
-    custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
+    custom_mode = st.sidebar.checkbox(" Mode personnalisé")
 
     if custom_mode:
         ticker_input = st.sidebar.text_input("Ticker personnalisé (ex: GOOGL, META)", value="").upper()
