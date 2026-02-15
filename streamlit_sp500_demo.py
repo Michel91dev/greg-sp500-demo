@@ -200,27 +200,21 @@ def main():
     actions_par_utilisateur = {
         "Michel": {
             "^GSPC": "📈 S&P 500",
-            "MSFT": "�️ Microsoft",
-            "AAPL": "📱 Apple",
-            "AMZN": "📦 Amazon",
-            "GOOGL": "🔍 Google",
-            "META": "📘 Meta"
+            "SATS": "🛰️ EchoStar",
+            "DBX": "☁️ Dropbox",
+            "COIN": "₿ Coinbase"
         },
         "Romain": {
-            "TSLA": "🚗 Tesla",
-            "NFLX": "🎬 Netflix",
-            "COIN": "₿ Coinbase",
-            "PYPL": "💳 PayPal",
-            "ZM": "🎥 Zoom",
-            "DBX": "☁️ Dropbox"
+            "PYPL": "� PayPal",
+            "ZM": "� Zoom",
+            "MSFT": "🖥️ Microsoft",
+            "AAPL": "� Apple"
         },
         "Roger": {
-            "SATS": "�️ EchoStar",
-            "PANX.PA": "� Amundi NASDAQ-100 ETF",
-            "NVDA": "� NVIDIA",
-            "AMD": "� AMD",
-            "INTC": "� Intel",
-            "IBM": "🤖 IBM"
+            "TSLA": "🚗 Tesla",
+            "NFLX": "🎬 Netflix",
+            "AMZN": "📦 Amazon",
+            "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
         }
     }
 
