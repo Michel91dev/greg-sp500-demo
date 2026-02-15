@@ -280,20 +280,25 @@ def main():
         except:
             return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
 
-    # Créer les boutons avec vraies couleurs de fond
+    # Créer les boutons avec vraies couleurs de fond et détection de clic
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
 
         # Obtenir la couleur de recommandation
         bg_color, signal = get_recommendation_signal(ticker)
 
-        # Créer un bouton HTML avec fond coloré
+        # Vérifier si c'est le ticker sélectionné
+        is_selected = (ticker == selected_ticker)
+        border_color = "#000000" if is_selected else bg_color
+        border_width = "3px" if is_selected else "2px"
+
+        # Créer un bouton HTML avec fond coloré et cadre si sélectionné
         button_html = f"""
         <style>
         .btn-{ticker.lower().replace('.', '').replace('^', '')} {{
             background-color: {bg_color} !important;
             color: black !important;
-            border: 2px solid {bg_color} !important;
+            border: {border_width} solid {border_color} !important;
             padding: 8px !important;
             border-radius: 4px !important;
             width: 100% !important;
@@ -301,18 +306,23 @@ def main():
             margin-bottom: 8px !important;
             text-align: center !important;
             cursor: pointer !important;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
         }}
         .btn-{ticker.lower().replace('.', '').replace('^', '')}:hover {{
             opacity: 0.8 !important;
         }}
         </style>
-        <button class="btn-{ticker.lower().replace('.', '').replace('^', '')}" onclick="window.location.reload()">
+        <button class="btn-{ticker.lower().replace('.', '').replace('^', '')}" onclick="window.location.href='?selected={ticker}'">
             {nom}
         </button>
         """
 
         # Afficher le bouton HTML
         col.markdown(button_html, unsafe_allow_html=True)
+
+        # Détecter si ce ticker est dans l'URL
+        if ticker in st.query_params.get('selected', ''):
+            selected_ticker = ticker
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
@@ -347,7 +357,7 @@ def main():
     show_macd = st.sidebar.checkbox("MACD", value=True, help="Tendance et momentum")
     show_bollinger = st.sidebar.checkbox("Bollinger Bands", value=False, help="Volatilité")
 
-    st.title(f"📈 Dashboard d'investissements Michel, Romain et Roger")
+    st.title(f"📈 {nom_action}")
     st.markdown(f"Analyse technique de {nom_action}")
 
     # Chargement des données (d'abord pour avoir prix_actuel)
