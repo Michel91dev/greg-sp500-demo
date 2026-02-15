@@ -250,32 +250,36 @@ def main():
         except:
             return "#FFFFFF", "Neutre"
 
-    # Sélection rapide des actions avec couleurs de recommandation
-    st.sidebar.subheader("🎯 Sélection rapide")
+    # Sélection rapide fusionnée avec recommandations
+    st.sidebar.subheader("🎯 Actions & Recommandations")
 
-    # Construire les options du radio avec noms
-    liste_noms = list(actions_disponibles.values())
+    # Construire les options du radio avec noms enrichis (nom + signal)
+    liste_noms_enrichis = []
+    signaux_cache = {}
+    for ticker_key, nom in actions_disponibles.items():
+        bg_color, signal = get_recommendation_signal(ticker_key)
+        signaux_cache[ticker_key] = (bg_color, signal)
+        liste_noms_enrichis.append(f"{nom} → {signal}")
 
     # Trouver l'index de l'action sélectionnée
     idx_selected = liste_tickers.index(st.session_state.selected_ticker)
 
-    # Radio pour sélectionner l'action (fonctionne nativement)
+    # Radio unique pour sélectionner l'action (fonctionne nativement)
     action_choisie = st.sidebar.radio(
         "Action :",
-        liste_noms,
+        liste_noms_enrichis,
         index=idx_selected,
         label_visibility="collapsed"
     )
 
     # Retrouver le ticker correspondant
-    idx_action = liste_noms.index(action_choisie)
+    idx_action = liste_noms_enrichis.index(action_choisie)
     selected_ticker = liste_tickers[idx_action]
     st.session_state.selected_ticker = selected_ticker
 
-    # Afficher les couleurs de recommandation pour chaque action
-    st.sidebar.write("**Recommandations :**")
+    # Afficher les blocs colorés avec bordure rouge sur la sélection
     for ticker_key, nom in actions_disponibles.items():
-        bg_color, signal = get_recommendation_signal(ticker_key)
+        bg_color, signal = signaux_cache[ticker_key]
         is_selected = (ticker_key == selected_ticker)
         border = "border:3px solid red;" if is_selected else ""
         st.sidebar.markdown(
