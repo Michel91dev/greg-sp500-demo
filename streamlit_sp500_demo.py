@@ -214,9 +214,45 @@ def main():
     cols = st.sidebar.columns(2)
     selected_ticker = None
 
+    # Fonction pour déterminer la recommandation
+    def get_recommendation_signal(ticker_symbol):
+        try:
+            # Charger les données pour cette action
+            ticker = yf.Ticker(ticker_symbol)
+            data = ticker.history(period="1y")
+
+            if data.empty:
+                return "⚪", "Neutre"  # Blanc par défaut
+
+            # Calculer les moyennes mobiles
+            data['MA50'] = data['Close'].rolling(window=50).mean()
+            data['MA200'] = data['Close'].rolling(window=200).mean()
+
+            prix_actuel = data['Close'].iloc[-1]
+            dernier_ma50 = data['MA50'].iloc[-1]
+            dernier_ma200 = data['MA200'].iloc[-1]
+
+            # Déterminer la recommandation
+            if prix_actuel > dernier_ma50 > dernier_ma200:
+                return "🟢", "Acheter"  # Vert
+            elif prix_actuel < dernier_ma50 < dernier_ma200:
+                return "🔴", "Vendre"  # Rouge
+            else:
+                return "🟡", "Attente"  # Orange
+
+        except:
+            return "⚪", "Neutre"  # Blanc par défaut en cas d'erreur
+
+    # Créer les boutons avec indicateurs de couleur
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
-        if col.button(f"{nom}", key=f"btn_{ticker}", use_container_width=True):
+
+        # Obtenir le signal de recommandation
+        emoji, signal = get_recommendation_signal(ticker)
+
+        # Créer un bouton avec l'indicateur de couleur
+        button_text = f"{emoji} {nom}"
+        if col.button(button_text, key=f"btn_{ticker}", use_container_width=True, help=f"Signal: {signal}"):
             selected_ticker = ticker
 
     # Option personnalisée en dessous
