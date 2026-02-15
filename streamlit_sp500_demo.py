@@ -170,9 +170,22 @@ def main():
     st.sidebar.markdown(f"**Version : {version}**")
     st.sidebar.markdown("---")
 
-    # Sélection de l'utilisateur
+    # Sélection de l'utilisateur avec boutons push
     st.sidebar.subheader("👤 Utilisateur")
-    utilisateur = st.sidebar.radio("Qui êtes-vous ?", ["Michel", "Romain", "Roger"], index=0)
+    col1, col2, col3 = st.sidebar.columns(3)
+
+    utilisateur = "Michel"  # Par défaut
+
+    with col1:
+        if st.button("🟦 Michel", key="btn_michel", use_container_width=True):
+            utilisateur = "Michel"
+    with col2:
+        if st.button("🟥 Romain", key="btn_romain", use_container_width=True):
+            utilisateur = "Romain"
+    with col3:
+        if st.button("🟩 Roger", key="btn_roger", use_container_width=True):
+            utilisateur = "Roger"
+
     st.sidebar.markdown("---")
 
     # Bouton d'aide
@@ -196,30 +209,21 @@ def main():
     # Choix de l'action - tout visible par défaut
     st.sidebar.header("🎯 Sélection rapide")
 
-    # Actions disponibles par utilisateur
-    actions_par_utilisateur = {
-        "Michel": {
-            "^GSPC": "📈 S&P 500",
-            "SATS": "🛰️ EchoStar",
-            "DBX": "☁️ Dropbox",
-            "COIN": "₿ Coinbase"
-        },
-        "Romain": {
-            "PYPL": "� PayPal",
-            "ZM": "� Zoom",
-            "MSFT": "🖥️ Microsoft",
-            "AAPL": "� Apple"
-        },
-        "Roger": {
-            "TSLA": "🚗 Tesla",
-            "NFLX": "🎬 Netflix",
-            "AMZN": "📦 Amazon",
-            "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
-        }
+    # Actions originales de Michel (toutes pour lui)
+    actions_disponibles = {
+        "^GSPC": "📈 S&P 500",
+        "SATS": "🛰️ EchoStar",
+        "DBX": "☁️ Dropbox",
+        "COIN": "₿ Coinbase",
+        "PYPL": "💳 PayPal",
+        "ZM": "🎥 Zoom",
+        "MSFT": "🖥️ Microsoft",
+        "AAPL": "📱 Apple",
+        "TSLA": "🚗 Tesla",
+        "NFLX": "🎬 Netflix",
+        "AMZN": "📦 Amazon",
+        "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
     }
-
-    # Actions disponibles pour l'utilisateur courant
-    actions_disponibles = actions_par_utilisateur[utilisateur]
 
     # Afficher tous les boutons visibles
     st.sidebar.write("**Sélectionnez une action :**")
