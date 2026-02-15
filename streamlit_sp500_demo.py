@@ -174,13 +174,13 @@ def main():
     col_user1, col_user2, col_user3 = st.sidebar.columns(3)
 
     with col_user1:
-        if st.button("🟦 Michel", key="user_michel", use_container_width=True):
+        if st.button("Michel", key="user_michel", use_container_width=True):
             st.session_state.utilisateur = "Michel"
     with col_user2:
-        if st.button("🟪 Romain", key="user_romain", use_container_width=True):
+        if st.button("Romain", key="user_romain", use_container_width=True):
             st.session_state.utilisateur = "Romain"
     with col_user3:
-        if st.button("🟨 Roger", key="user_roger", use_container_width=True):
+        if st.button("Roger", key="user_roger", use_container_width=True):
             st.session_state.utilisateur = "Roger"
 
     # Récupérer l'utilisateur depuis session_state ou défaut
@@ -188,6 +188,15 @@ def main():
         st.session_state.utilisateur = "Michel"
 
     utilisateur = st.session_state.utilisateur
+
+    # Afficher l'utilisateur actif avec couleur
+    couleurs_utilisateur = {"Michel": "#4682B4", "Romain": "#9370DB", "Roger": "#DAA520"}
+    st.sidebar.markdown(
+        f'<div style="background-color:{couleurs_utilisateur[utilisateur]};color:white;'
+        f'padding:4px 8px;border-radius:4px;text-align:center;font-weight:bold;margin-bottom:8px;">'
+        f'👤 {utilisateur}</div>',
+        unsafe_allow_html=True
+    )
 
     # Configuration sidebar
     st.sidebar.header("Paramètres")
@@ -225,13 +234,6 @@ def main():
     # Actions disponibles pour l'utilisateur courant
     actions_disponibles = actions_par_utilisateur[utilisateur]
 
-    # Afficher tous les boutons visibles
-    st.sidebar.write("**Sélectionnez une action :**")
-
-    # Créer une grille de boutons 2 colonnes pour plus de lisibilité
-    cols = st.sidebar.columns(2)
-    selected_ticker = None
-
     # Fonction pour déterminer la recommandation
     def get_recommendation_signal(ticker_symbol):
         try:
@@ -261,74 +263,66 @@ def main():
         except:
             return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
 
-    # Créer les boutons avec vraies couleurs de fond et espacement réduit
+    # Construire la liste des actions avec couleurs pour affichage
+    liste_tickers = list(actions_disponibles.keys())
+    liste_noms = list(actions_disponibles.values())
+
+    # Initialiser le ticker sélectionné dans session_state
+    if 'selected_ticker' not in st.session_state:
+        st.session_state.selected_ticker = "^GSPC"
+
+    # Si le ticker sélectionné n'est pas dans la liste de l'utilisateur courant, reset
+    if st.session_state.selected_ticker not in liste_tickers:
+        st.session_state.selected_ticker = liste_tickers[0]
+
+    selected_ticker = st.session_state.selected_ticker
+
+    # Afficher les actions avec couleurs de recommandation en HTML
+    st.sidebar.write("**Sélectionnez une action :**")
+
+    # Créer les boutons colorés en 2 colonnes
+    cols = st.sidebar.columns(2)
+
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
-
-        # Obtenir la couleur de recommandation
         bg_color, signal = get_recommendation_signal(ticker)
-
-        # Vérifier si c'est le ticker sélectionné
         is_selected = (ticker == selected_ticker)
 
-        # Créer un bouton Streamlit normal (qui fonctionne)
-        if is_selected:
-            if col.button(f"👉 {nom}", key=f"btn_{ticker}", use_container_width=True):
-                selected_ticker = ticker
-        else:
-            if col.button(nom, key=f"btn_{ticker}", use_container_width=True):
-                selected_ticker = ticker
+        # Bordure rouge si sélectionné
+        border_style = "border:3px solid red;" if is_selected else "border:1px solid #ccc;"
+        font_style = "font-weight:900;" if is_selected else "font-weight:bold;"
 
-        # Appliquer le style CSS avec espacement ultra-réduit et couleurs visibles
-        if is_selected:
-            button_style = f"""
-            <style>
-            div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin: 0px !important;
-                padding: 0px !important;
-                height: 22px !important;
-            }}
-            button[key="btn_{ticker}"] {{
-                background-color: {bg_color} !important;
-                color: black !important;
-                border: 4px solid red !important;
-                padding: 0px 2px !important;
-                border-radius: 2px !important;
-                font-weight: bold !important;
-                font-size: 11px !important;
-                margin: 0px !important;
-                height: 20px !important;
-                width: 100% !important;
-                outline: 3px solid red !important;
-                outline-offset: 1px !important;
-                box-shadow: 0 0 10px rgba(255,0,0,0.8) !important;
-            }}
-            </style>
-            """
-        else:
-            button_style = f"""
-            <style>
-            div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin: 0px !important;
-                padding: 0px !important;
-                height: 22px !important;
-            }}
-            button[key="btn_{ticker}"] {{
-                background-color: {bg_color} !important;
-                color: black !important;
-                border: 1px solid {bg_color} !important;
-                padding: 0px 2px !important;
-                border-radius: 2px !important;
-                font-weight: bold !important;
-                font-size: 11px !important;
-                margin: 0px !important;
-                height: 20px !important;
-                width: 100% !important;
-            }}
-            </style>
-            """
+        # Afficher le bloc coloré cliquable
+        col.markdown(
+            f'<div style="background-color:{bg_color};{border_style}{font_style}'
+            f'padding:6px 4px;border-radius:4px;text-align:center;margin-bottom:2px;'
+            f'font-size:12px;cursor:pointer;">'
+            f'{nom}</div>',
+            unsafe_allow_html=True
+        )
 
-        col.markdown(button_style, unsafe_allow_html=True)
+        # Bouton invisible pour la détection de clic
+        if col.button("▸", key=f"btn_{ticker}", use_container_width=True):
+            st.session_state.selected_ticker = ticker
+            selected_ticker = ticker
+
+    # CSS global pour réduire la taille des petits boutons de sélection
+    st.sidebar.markdown("""
+    <style>
+    section[data-testid="stSidebar"] button {
+        height: 20px !important;
+        min-height: 20px !important;
+        padding: 0px !important;
+        font-size: 8px !important;
+        margin-top: -8px !important;
+        margin-bottom: 0px !important;
+        opacity: 0.3;
+    }
+    section[data-testid="stSidebar"] .stMarkdown div {
+        margin-bottom: 0px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
