@@ -1,0 +1,9 @@
+[general]
+name = "greg-sp500-demo"
+
+[python]
+version = "3.11"
+requirements = "requirements.txt"
+
+[urls]
+primary_url = "http://0.0.0.0:8501"
