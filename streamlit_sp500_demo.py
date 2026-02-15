@@ -270,10 +270,28 @@ def main():
             st.write("Tendance incertaine")
 
     with col2:
-        st.write("**Signaux MA**")
-        st.write(f"- Prix vs MA50: {'✅' if prix_actuel > dernier_ma50 else '❌'}")
-        st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
-        st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+        st.write("**Signaux techniques**")
+        if prix_actuel > dernier_ma50:
+            st.success(f"📈 Prix > MA50 ({dernier_ma50:.2f} $) → **CONFIANCE** court terme")
+            st.write("   Le prix est au-dessus de sa moyenne récente")
+        else:
+            st.error(f"📉 Prix < MA50 ({dernier_ma50:.2f} $) → **PRUDENCE** court terme")
+            st.write("   Le prix est sous sa moyenne récente")
+
+        if dernier_ma50 > dernier_ma200:
+            st.success(f"🚀 MA50 > MA200 ({dernier_ma200:.2f} $) → **TENDANCE** haussière")
+            st.write("   La tendance récente est plus forte que le long terme")
+        else:
+            st.error(f"📉 MA50 < MA200 ({dernier_ma200:.2f} $) → **TENDANCE** baissière")
+            st.write("   La tendance récente est plus faible que le long terme")
+
+        volatilite = data['Close'].pct_change().std() * 100
+        if volatilite < 1.5:
+            st.info(f"📊 Volatilité {volatilite:.1f}% → **STABLE**")
+        elif volatilite < 2.5:
+            st.warning(f"📊 Volatilité {volatilite:.1f}% → **MODÉRÉE**")
+        else:
+            st.error(f"📊 Volatilité {volatilite:.1f}% → **ÉLEVÉE**")
 
     with col3:
         st.write("**Croisements récents**")
@@ -319,7 +337,7 @@ def main():
             mode='lines', name='MA200', line=dict(color='red', width=2)
         ))
 
-        # Ajouter les marqueurs de croisements
+        # Ajouter les marqueurs de croisements avec annotations
         golden_crosses, death_crosses = detecter_croisements_ma(data)
 
         if golden_crosses:
@@ -331,6 +349,22 @@ def main():
                 name='🟢 Golden Cross',
                 marker=dict(color='green', size=12, symbol='triangle-up')
             ))
+            # Ajouter annotations pour les Golden Cross
+            for i, (date, price) in enumerate(zip(gc_dates[-3:], gc_prices[-3:])):  # 3 derniers
+                fig_ma.add_annotation(
+                    x=date, y=price,
+                    text=f"🟢 ACHAT<br>{date.strftime('%d/%m')}",
+                    showarrow=True,
+                    arrowhead=2,
+                    arrowsize=1,
+                    arrowwidth=2,
+                    arrowcolor="green",
+                    ax=0,
+                    ay=-40,
+                    bgcolor="lightgreen",
+                    bordercolor="green",
+                    borderwidth=1
+                )
 
         if death_crosses:
             dc_dates = [date for date in death_crosses if date in data.index]
@@ -341,6 +375,22 @@ def main():
                 name='🔴 Death Cross',
                 marker=dict(color='red', size=12, symbol='triangle-down')
             ))
+            # Ajouter annotations pour les Death Cross
+            for i, (date, price) in enumerate(zip(dc_dates[-3:], dc_prices[-3:])):  # 3 derniers
+                fig_ma.add_annotation(
+                    x=date, y=price,
+                    text=f"🔴 VENTE<br>{date.strftime('%d/%m')}",
+                    showarrow=True,
+                    arrowhead=2,
+                    arrowsize=1,
+                    arrowwidth=2,
+                    arrowcolor="red",
+                    ax=0,
+                    ay=40,
+                    bgcolor="lightcoral",
+                    bordercolor="red",
+                    borderwidth=1
+                )
 
         fig_ma.update_layout(
             title="Prix et moyennes mobiles avec croisements",
@@ -361,6 +411,76 @@ def main():
             if death_crosses:
                 dernier_dc = death_crosses[-1]
                 st.error(f"🔴 **Death Cross** le {dernier_dc.strftime('%d/%m/%Y')} : Signal de vente fort")
+
+    # Section d'interprétation globale
+    if show_ma or show_rsi or show_macd:
+        st.markdown("---")
+        st.subheader("🎓 Synthèse et interprétation")
+
+        # Analyse globale des signaux
+        signaux_positifs = 0
+        signaux_negatifs = 0
+
+        analyse = []
+
+        # Signal MA
+        if show_ma:
+            if prix_actuel > dernier_ma50 > dernier_ma200:
+                signaux_positifs += 2
+                analyse.append("🟢 **MA50/MA200** : Tendance haussière confirmée sur tous les horizons")
+            elif prix_actuel < dernier_ma50 < dernier_ma200:
+                signaux_negatifs += 2
+                analyse.append("🔴 **MA50/MA200** : Tendance baissière confirmée sur tous les horizons")
+            else:
+                signaux_positifs += 1
+                signaux_negatifs += 1
+                analyse.append("🟡 **MA50/MA200** : Tendances contradictoires - période d'incertitude")
+
+        # Signal RSI
+        if show_rsi:
+            rsi = calculate_rsi(data)
+            rsi_actuel = rsi.iloc[-1]
+            if rsi_actuel > 70:
+                signaux_negatifs += 1
+                analyse.append("🔴 **RSI** : Zone de surachat - risque de correction")
+            elif rsi_actuel < 30:
+                signaux_positifs += 1
+                analyse.append("🟢 **RSI** : Zone de survente - opportunité d'achat")
+            else:
+                analyse.append("🟡 **RSI** : Zone neutre - pas de signal extrême")
+
+        # Signal MACD
+        if show_macd:
+            macd_line, signal_line, _ = calculate_macd(data)
+            if macd_line.iloc[-1] > signal_line.iloc[-1]:
+                signaux_positifs += 1
+                analyse.append("🟢 **MACD** : Momentum haussier - force d'achat présente")
+            else:
+                signaux_negatifs += 1
+                analyse.append("🔴 **MACD** : Momentum baissier - force de vente présente")
+
+        # Synthèse finale
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("🟢 Signaux positifs", signaux_positifs)
+        with col2:
+            st.metric("🔴 Signaux négatifs", signaux_negatifs)
+        with col3:
+            if signaux_positifs > signaux_negatifs:
+                st.success("🎯 **CONCLUSION** : HAUSSIÈRE")
+            elif signaux_negatifs > signaux_positifs:
+                st.error("🎯 **CONCLUSION** : BAISSIÈRE")
+            else:
+                st.warning("🎯 **CONCLUSION** : NEUTRE")
+
+        # Détail de l'analyse
+        st.write("**Détail de l'analyse :**")
+        for point in analyse:
+            st.write(f"• {point}")
+
+        # Conseil pédagogique
+        st.info("💡 **Conseil** : Plus vous avez de signaux alignés dans la même direction, plus le signal est fiable. Les contradictions indiquent souvent une période de transition.")
 
     if show_rsi:
         st.subheader("📊 RSI (Relative Strength Index)")
@@ -514,10 +634,28 @@ def main():
             st.write("Tendance incertaine")
 
     with col2:
-        st.write("**Signaux MA**")
-        st.write(f"- Prix vs MA50: {'✅' if prix_actuel > dernier_ma50 else '❌'}")
-        st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
-        st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+        st.write("**Signaux techniques**")
+        if prix_actuel > dernier_ma50:
+            st.success(f"📈 Prix > MA50 ({dernier_ma50:.2f} $) → **CONFIANCE** court terme")
+            st.write("   Le prix est au-dessus de sa moyenne récente")
+        else:
+            st.error(f"📉 Prix < MA50 ({dernier_ma50:.2f} $) → **PRUDENCE** court terme")
+            st.write("   Le prix est sous sa moyenne récente")
+
+        if dernier_ma50 > dernier_ma200:
+            st.success(f"🚀 MA50 > MA200 ({dernier_ma200:.2f} $) → **TENDANCE** haussière")
+            st.write("   La tendance récente est plus forte que le long terme")
+        else:
+            st.error(f"📉 MA50 < MA200 ({dernier_ma200:.2f} $) → **TENDANCE** baissière")
+            st.write("   La tendance récente est plus faible que le long terme")
+
+        volatilite = data['Close'].pct_change().std() * 100
+        if volatilite < 1.5:
+            st.info(f"📊 Volatilité {volatilite:.1f}% → **STABLE**")
+        elif volatilite < 2.5:
+            st.warning(f"📊 Volatilité {volatilite:.1f}% → **MODÉRÉE**")
+        else:
+            st.error(f"📊 Volatilité {volatilite:.1f}% → **ÉLEVÉE**")
 
     with col3:
         st.write("**Croisements récents**")
