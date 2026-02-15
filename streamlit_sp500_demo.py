@@ -105,13 +105,24 @@ def main():
     data['MA20'] = data['Close'].rolling(window=20).mean()
     data['MA50'] = data['Close'].rolling(window=50).mean()
 
-    ma_fig = px.line(
-        data.tail(100).dropna(),  # 100 derniers jours sans NaN
-        x=data.tail(100).dropna().index,
-        y=['Close', 'MA20', 'MA50'],
-        title="Prix et moyennes mobiles",
-        labels={'value': 'Prix ($)', 'index': 'Date'}
-    )
+    # Ajouter MA200 si période suffisante
+    if periode not in ["1mo", "3mo", "6mo"]:
+        data['MA200'] = data['Close'].rolling(window=200).mean()
+        ma_fig = px.line(
+            data.tail(200).dropna(),  # 200 derniers jours pour MA200
+            x=data.tail(200).dropna().index,
+            y=['Close', 'MA50', 'MA200'],
+            title="Prix et moyennes mobiles (MA50/MA200)",
+            labels={'value': 'Prix ($)', 'index': 'Date'}
+        )
+    else:
+        ma_fig = px.line(
+            data.tail(100).dropna(),  # 100 derniers jours sans NaN
+            x=data.tail(100).dropna().index,
+            y=['Close', 'MA20', 'MA50'],
+            title="Prix et moyennes mobiles (MA20/MA50)",
+            labels={'value': 'Prix ($)', 'index': 'Date'}
+        )
     st.plotly_chart(ma_fig, use_container_width=True)
 
     # Recommandation de trading avec croisements
