@@ -168,45 +168,26 @@ def main():
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
     st.sidebar.markdown(f"**Version : {version}**")
 
-    # Sélection de l'utilisateur avec boutons push stylés
+    # Sélection de l'utilisateur avec boutons Streamlit fonctionnels
     st.sidebar.subheader("👤 Utilisateur")
-
-    utilisateur = "Michel"  # Par défaut
-
-    # Fonction pour créer des boutons utilisateur stylés
-    def create_user_button(nom, couleur, ticker):
-        button_html = f"""
-        <style>
-        .btn-user-{ticker.lower()} {{
-            background-color: {couleur} !important;
-            color: white !important;
-            border: 2px solid {couleur} !important;
-            padding: 8px !important;
-            border-radius: 4px !important;
-            width: 100% !important;
-            font-weight: bold !important;
-            margin-bottom: 4px !important;
-            text-align: center !important;
-            cursor: pointer !important;
-        }}
-        .btn-user-{ticker.lower()}:hover {{
-            opacity: 0.8 !important;
-        }}
-        </style>
-        <button class="btn-user-{ticker.lower()}" onclick="window.location.reload()">
-            {nom}
-        </button>
-        """
-        return button_html
 
     col_user1, col_user2, col_user3 = st.sidebar.columns(3)
 
     with col_user1:
-        st.markdown(create_user_button("Michel", "#4682B4", "Michel"), unsafe_allow_html=True)
+        if st.button("🟦 Michel", key="user_michel", use_container_width=True):
+            st.session_state.utilisateur = "Michel"
     with col_user2:
-        st.markdown(create_user_button("Romain", "#9370DB", "Romain"), unsafe_allow_html=True)
+        if st.button("🟪 Romain", key="user_romain", use_container_width=True):
+            st.session_state.utilisateur = "Romain"
     with col_user3:
-        st.markdown(create_user_button("Roger", "#DAA520", "Roger"), unsafe_allow_html=True)
+        if st.button("🟨 Roger", key="user_roger", use_container_width=True):
+            st.session_state.utilisateur = "Roger"
+
+    # Récupérer l'utilisateur depuis session_state ou défaut
+    if 'utilisateur' not in st.session_state:
+        st.session_state.utilisateur = "Michel"
+
+    utilisateur = st.session_state.utilisateur
 
     # Configuration sidebar
     st.sidebar.header("Paramètres")
@@ -280,7 +261,7 @@ def main():
         except:
             return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
 
-    # Créer les boutons avec vraies couleurs de fond et détection de clic
+    # Créer les boutons avec vraies couleurs de fond et espacement réduit
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
 
@@ -292,35 +273,33 @@ def main():
 
         # Créer un bouton Streamlit normal (qui fonctionne)
         if is_selected:
-            # Bouton sélectionné avec cadre rouge
             if col.button(f"👉 {nom}", key=f"btn_{ticker}", use_container_width=True):
                 selected_ticker = ticker
         else:
-            # Bouton normal
             if col.button(nom, key=f"btn_{ticker}", use_container_width=True):
                 selected_ticker = ticker
 
-        # Appliquer le style CSS après le bouton
+        # Appliquer le style CSS avec espacement réduit et couleurs visibles
         if is_selected:
             button_style = f"""
             <style>
             div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin-bottom: 1px !important;
-                padding-bottom: 1px !important;
+                margin-bottom: 0px !important;
+                padding-bottom: 0px !important;
             }}
             button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
-                border: 4px solid red !important;
-                padding: 2px 6px !important;
-                border-radius: 4px !important;
+                border: 3px solid red !important;
+                padding: 1px 4px !important;
+                border-radius: 3px !important;
                 font-weight: bold !important;
-                box-shadow: 0 0 15px rgba(255,0,0,0.8) !important;
+                font-size: 12px !important;
                 margin: 0px !important;
                 height: auto !important;
-                min-height: 28px !important;
-                outline: 3px solid red !important;
-                outline-offset: 2px !important;
+                min-height: 24px !important;
+                outline: 2px solid red !important;
+                outline-offset: 1px !important;
             }}
             </style>
             """
@@ -328,19 +307,20 @@ def main():
             button_style = f"""
             <style>
             div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin-bottom: 1px !important;
-                padding-bottom: 1px !important;
+                margin-bottom: 0px !important;
+                padding-bottom: 0px !important;
             }}
             button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
-                border: 2px solid {bg_color} !important;
-                padding: 2px 6px !important;
-                border-radius: 4px !important;
+                border: 1px solid {bg_color} !important;
+                padding: 1px 4px !important;
+                border-radius: 3px !important;
                 font-weight: bold !important;
+                font-size: 12px !important;
                 margin: 0px !important;
                 height: auto !important;
-                min-height: 28px !important;
+                min-height: 24px !important;
             }}
             </style>
             """
