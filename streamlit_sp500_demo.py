@@ -279,27 +279,29 @@ def main():
             if col.button(nom, key=f"btn_{ticker}", use_container_width=True):
                 selected_ticker = ticker
 
-        # Appliquer le style CSS avec espacement réduit et couleurs visibles
+        # Appliquer le style CSS avec espacement ultra-réduit et couleurs visibles
         if is_selected:
             button_style = f"""
             <style>
             div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin-bottom: 0px !important;
-                padding-bottom: 0px !important;
+                margin: 0px !important;
+                padding: 0px !important;
+                height: 22px !important;
             }}
             button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
-                border: 3px solid red !important;
-                padding: 1px 4px !important;
-                border-radius: 3px !important;
+                border: 4px solid red !important;
+                padding: 0px 2px !important;
+                border-radius: 2px !important;
                 font-weight: bold !important;
-                font-size: 12px !important;
+                font-size: 11px !important;
                 margin: 0px !important;
-                height: auto !important;
-                min-height: 24px !important;
-                outline: 2px solid red !important;
+                height: 20px !important;
+                width: 100% !important;
+                outline: 3px solid red !important;
                 outline-offset: 1px !important;
+                box-shadow: 0 0 10px rgba(255,0,0,0.8) !important;
             }}
             </style>
             """
@@ -307,20 +309,21 @@ def main():
             button_style = f"""
             <style>
             div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
-                margin-bottom: 0px !important;
-                padding-bottom: 0px !important;
+                margin: 0px !important;
+                padding: 0px !important;
+                height: 22px !important;
             }}
             button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
                 border: 1px solid {bg_color} !important;
-                padding: 1px 4px !important;
-                border-radius: 3px !important;
+                padding: 0px 2px !important;
+                border-radius: 2px !important;
                 font-weight: bold !important;
-                font-size: 12px !important;
+                font-size: 11px !important;
                 margin: 0px !important;
-                height: auto !important;
-                min-height: 24px !important;
+                height: 20px !important;
+                width: 100% !important;
             }}
             </style>
             """
