@@ -222,7 +222,7 @@ def main():
             data = ticker.history(period="1y")
 
             if data.empty:
-                return "⚪", "Neutre"  # Blanc par défaut
+                return "#FFFFFF", "Neutre"  # Blanc par défaut
 
             # Calculer les moyennes mobiles
             data['MA50'] = data['Close'].rolling(window=50).mean()
@@ -234,26 +234,39 @@ def main():
 
             # Déterminer la recommandation
             if prix_actuel > dernier_ma50 > dernier_ma200:
-                return "🟢", "Acheter"  # Vert
+                return "#90EE90", "Acheter"  # Vert clair
             elif prix_actuel < dernier_ma50 < dernier_ma200:
-                return "🔴", "Vendre"  # Rouge
+                return "#FFB6C1", "Vendre"  # Rouge clair
             else:
-                return "🟡", "Attente"  # Orange
+                return "#FFE4B5", "Attente"  # Orange clair
 
         except:
-            return "⚪", "Neutre"  # Blanc par défaut en cas d'erreur
+            return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
 
-    # Créer les boutons avec indicateurs de couleur
+    # Créer les boutons avec fonds colorés
     for i, (ticker, nom) in enumerate(actions_disponibles.items()):
         col = cols[i % 2]
 
-        # Obtenir le signal de recommandation
-        emoji, signal = get_recommendation_signal(ticker)
+        # Obtenir la couleur de recommandation
+        bg_color, signal = get_recommendation_signal(ticker)
 
-        # Créer un bouton avec l'indicateur de couleur
-        button_text = f"{emoji} {nom}"
-        if col.button(button_text, key=f"btn_{ticker}", use_container_width=True, help=f"Signal: {signal}"):
-            selected_ticker = ticker
+        # Créer un conteneur avec fond coloré
+        with col.container():
+            # Style CSS pour le fond
+            st.markdown(f"""
+            <div style="
+                background-color: {bg_color};
+                padding: 8px;
+                border-radius: 4px;
+                margin-bottom: 8px;
+                border: 1px solid #ddd;
+            ">
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Bouton par-dessus le fond
+            if st.button(nom, key=f"btn_{ticker}", use_container_width=True, help=f"Signal: {signal}"):
+                selected_ticker = ticker
 
     # Option personnalisée en dessous
     st.sidebar.markdown("---")
