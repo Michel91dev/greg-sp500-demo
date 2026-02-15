@@ -289,40 +289,45 @@ def main():
 
         # Vérifier si c'est le ticker sélectionné
         is_selected = (ticker == selected_ticker)
-        border_color = "#000000" if is_selected else bg_color
-        border_width = "3px" if is_selected else "2px"
 
-        # Créer un bouton HTML avec fond coloré et cadre si sélectionné
-        button_html = f"""
-        <style>
-        .btn-{ticker.lower().replace('.', '').replace('^', '')} {{
-            background-color: {bg_color} !important;
-            color: black !important;
-            border: {border_width} solid {border_color} !important;
-            padding: 8px !important;
-            border-radius: 4px !important;
-            width: 100% !important;
-            font-weight: bold !important;
-            margin-bottom: 8px !important;
-            text-align: center !important;
-            cursor: pointer !important;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
-        }}
-        .btn-{ticker.lower().replace('.', '').replace('^', '')}:hover {{
-            opacity: 0.8 !important;
-        }}
-        </style>
-        <button class="btn-{ticker.lower().replace('.', '').replace('^', '')}" onclick="window.location.href='?selected={ticker}'">
-            {nom}
-        </button>
-        """
-
-        # Afficher le bouton HTML
-        col.markdown(button_html, unsafe_allow_html=True)
-
-        # Détecter si ce ticker est dans l'URL
-        if ticker in st.query_params.get('selected', ''):
-            selected_ticker = ticker
+        # Créer un bouton Streamlit normal (qui fonctionne)
+        if is_selected:
+            # Bouton sélectionné avec cadre rouge
+            button_style = """
+            <style>
+            div.stButton > button:first-child {
+                background-color: """ + bg_color + """ !important;
+                color: black !important;
+                border: 4px solid red !important;
+                padding: 8px !important;
+                border-radius: 4px !important;
+                width: 100% !important;
+                font-weight: bold !important;
+                box-shadow: 0 0 15px rgba(255,0,0,0.5) !important;
+            }
+            </style>
+            """
+            col.markdown(button_style, unsafe_allow_html=True)
+            if col.button(f"👉 {nom}", key=f"btn_{ticker}", use_container_width=True):
+                selected_ticker = ticker
+        else:
+            # Bouton normal
+            button_style = """
+            <style>
+            div.stButton > button:first-child {
+                background-color: """ + bg_color + """ !important;
+                color: black !important;
+                border: 2px solid """ + bg_color + """ !important;
+                padding: 8px !important;
+                border-radius: 4px !important;
+                width: 100% !important;
+                font-weight: bold !important;
+            }
+            </style>
+            """
+            col.markdown(button_style, unsafe_allow_html=True)
+            if col.button(nom, key=f"btn_{ticker}", use_container_width=True):
+                selected_ticker = ticker
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
