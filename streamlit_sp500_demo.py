@@ -172,18 +172,19 @@ def main():
 
     # Sélection de l'utilisateur avec boutons push
     st.sidebar.subheader("👤 Utilisateur")
-    col1, col2, col3 = st.sidebar.columns(3)
 
     utilisateur = "Michel"  # Par défaut
 
-    with col1:
+    col_user1, col_user2, col_user3 = st.sidebar.columns(3)
+
+    with col_user1:
         if st.button("🟦 Michel", key="btn_michel", use_container_width=True):
             utilisateur = "Michel"
-    with col2:
-        if st.button("🟥 Romain", key="btn_romain", use_container_width=True):
+    with col_user2:
+        if st.button("� Romain", key="btn_romain", use_container_width=True):
             utilisateur = "Romain"
-    with col3:
-        if st.button("🟩 Roger", key="btn_roger", use_container_width=True):
+    with col_user3:
+        if st.button("� Roger", key="btn_roger", use_container_width=True):
             utilisateur = "Roger"
 
     st.sidebar.markdown("---")
@@ -292,12 +293,8 @@ def main():
         </button>
         """
 
-        # Afficher le bouton et détecter le clic
+        # Afficher le bouton HTML
         col.markdown(button_html, unsafe_allow_html=True)
-
-        # Pour la détection de clic, on utilise une approche alternative
-        if col.checkbox(f"Sélectionner {nom}", key=f"check_{ticker}", help=f"Signal: {signal}"):
-            selected_ticker = ticker
 
     # Option personnalisée en dessous
     st.sidebar.markdown("---")
