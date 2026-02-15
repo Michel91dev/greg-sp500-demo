@@ -192,7 +192,6 @@ def main():
     actions_disponibles = {
         "^GSPC": "📈 S&P 500",
         "SATS": "🛰️ EchoStar",
-        "LNAI": "� Lunai Bioworks",
         "DBX": "☁️ Dropbox",
         "COIN": "₿ Coinbase",
         "PYPL": "💳 PayPal",
@@ -202,7 +201,7 @@ def main():
         "TSLA": "🚗 Tesla",
         "NFLX": "🎬 Netflix",
         "AMZN": "📦 Amazon",
-        "PANX.PA": "� Amundi NASDAQ-100 ETF"
+        "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
     }
 
     # Afficher tous les boutons visibles
