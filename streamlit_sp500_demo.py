@@ -166,31 +166,50 @@ def main():
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
-    st.sidebar.markdown("---")
     st.sidebar.markdown(f"**Version : {version}**")
-    st.sidebar.markdown("---")
 
-    # Sélection de l'utilisateur avec boutons push
+    # Sélection de l'utilisateur avec boutons push stylés
     st.sidebar.subheader("👤 Utilisateur")
 
     utilisateur = "Michel"  # Par défaut
 
+    # Fonction pour créer des boutons utilisateur stylés
+    def create_user_button(nom, couleur, ticker):
+        button_html = f"""
+        <style>
+        .btn-user-{ticker.lower()} {{
+            background-color: {couleur} !important;
+            color: white !important;
+            border: 2px solid {couleur} !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            width: 100% !important;
+            font-weight: bold !important;
+            margin-bottom: 4px !important;
+            text-align: center !important;
+            cursor: pointer !important;
+        }}
+        .btn-user-{ticker.lower()}:hover {{
+            opacity: 0.8 !important;
+        }}
+        </style>
+        <button class="btn-user-{ticker.lower()}" onclick="window.location.reload()">
+            {nom}
+        </button>
+        """
+        return button_html
+
     col_user1, col_user2, col_user3 = st.sidebar.columns(3)
 
     with col_user1:
-        if st.button("🟦 Michel", key="btn_michel", use_container_width=True):
-            utilisateur = "Michel"
+        st.markdown(create_user_button("Michel", "#4682B4", "Michel"), unsafe_allow_html=True)
     with col_user2:
-        if st.button("� Romain", key="btn_romain", use_container_width=True):
-            utilisateur = "Romain"
+        st.markdown(create_user_button("Romain", "#9370DB", "Romain"), unsafe_allow_html=True)
     with col_user3:
-        if st.button("� Roger", key="btn_roger", use_container_width=True):
-            utilisateur = "Roger"
-
-    st.sidebar.markdown("---")
+        st.markdown(create_user_button("Roger", "#DAA520", "Roger"), unsafe_allow_html=True)
 
     # Bouton d'aide
-    show_help = st.sidebar.button("❓ Aide & Documentation")
+    show_help = st.sidebar.button("❓ Documentation")
 
     if show_help:
         st.sidebar.markdown("## 📚 Documentation des Indicateurs")
@@ -201,7 +220,6 @@ def main():
         )
 
         st.sidebar.markdown(docs[indicator_choice])
-        st.sidebar.markdown("---")
         st.sidebar.markdown("*💡 Astuce : Lisez la documentation pour comprendre comment utiliser chaque indicateur !*")
 
     # Configuration sidebar
@@ -297,8 +315,7 @@ def main():
         col.markdown(button_html, unsafe_allow_html=True)
 
     # Option personnalisée en dessous
-    st.sidebar.markdown("---")
-    custom_mode = st.sidebar.checkbox(" Mode personnalisé")
+    custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
 
     if custom_mode:
         ticker_input = st.sidebar.text_input("Ticker personnalisé (ex: GOOGL, META)", value="").upper()
