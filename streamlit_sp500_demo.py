@@ -186,11 +186,45 @@ def main():
     st.sidebar.header("Paramètres")
 
     # Choix entre S&P 500 ou action personnalisée
-    mode = st.sidebar.radio("Mode d'analyse", ["S&P 500", "Action personnalisée"])
+    mode = st.sidebar.radio("Mode d'analyse", ["S&P 500", "Actions populaires", "Action personnalisée"])
 
     if mode == "S&P 500":
         ticker_symbol = "^GSPC"
         nom_action = "S&P 500"
+    elif mode == "Actions populaires":
+        # Actions populaires avec boutons rapides
+        st.sidebar.write("**Actions populaires :**")
+
+        actions_populaires = {
+            "SATS": "EchoStar Corporation",
+            "LNAI": "Lanai Technology",
+            "DBX": "Dropbox",
+            "COIN": "Coinbase",
+            "PYPL": "PayPal",
+            "ZM": "Zoom",
+            "MSFT": "Microsoft",
+            "AAPL": "Apple",
+            "TSLA": "Tesla",
+            "NFLX": "Netflix",
+            "AMZN": "Amazon",
+            "PANX.PA": "Panasonic"
+        }
+
+        # Créer des colonnes pour les boutons
+        cols = st.sidebar.columns(3)
+        selected_ticker = None
+
+        for i, (ticker, nom) in enumerate(actions_populaires.items()):
+            col = cols[i % 3]
+            if col.button(f"{ticker}", help=nom, key=f"btn_{ticker}"):
+                selected_ticker = ticker
+
+        if selected_ticker:
+            ticker_symbol = selected_ticker
+            nom_action = f"{selected_ticker} - {actions_populaires[selected_ticker]}"
+        else:
+            st.sidebar.info("Sélectionnez une action ci-dessus")
+            st.stop()
     else:
         ticker_input = st.sidebar.text_input("Ticker de l'action (ex: AAPL, GOOGL, MSFT)", value="AAPL").upper()
         ticker_symbol = ticker_input
