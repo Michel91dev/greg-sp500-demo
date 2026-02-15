@@ -168,41 +168,31 @@ def main():
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
     st.sidebar.markdown(f"**Version : {version}**")
 
-    # Sélection de l'utilisateur avec boutons Streamlit fonctionnels
-    st.sidebar.subheader("👤 Utilisateur")
-
-    col_user1, col_user2, col_user3 = st.sidebar.columns(3)
-
-    with col_user1:
-        if st.button("Michel", key="user_michel", use_container_width=True):
-            st.session_state.utilisateur = "Michel"
-    with col_user2:
-        if st.button("Romain", key="user_romain", use_container_width=True):
-            st.session_state.utilisateur = "Romain"
-    with col_user3:
-        if st.button("Roger", key="user_roger", use_container_width=True):
-            st.session_state.utilisateur = "Roger"
-
-    # Récupérer l'utilisateur depuis session_state ou défaut
+    # Sélection de l'utilisateur
     if 'utilisateur' not in st.session_state:
         st.session_state.utilisateur = "Michel"
+    if 'selected_ticker' not in st.session_state:
+        st.session_state.selected_ticker = "^GSPC"
 
-    utilisateur = st.session_state.utilisateur
-
-    # Afficher l'utilisateur actif avec couleur
     couleurs_utilisateur = {"Michel": "#4682B4", "Romain": "#9370DB", "Roger": "#DAA520"}
+
+    st.sidebar.subheader("👤 Utilisateur")
+    utilisateur = st.sidebar.radio(
+        "Choisir :",
+        ["Michel", "Romain", "Roger"],
+        index=["Michel", "Romain", "Roger"].index(st.session_state.utilisateur),
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+    st.session_state.utilisateur = utilisateur
+
+    # Bandeau utilisateur actif
     st.sidebar.markdown(
         f'<div style="background-color:{couleurs_utilisateur[utilisateur]};color:white;'
-        f'padding:4px 8px;border-radius:4px;text-align:center;font-weight:bold;margin-bottom:8px;">'
+        f'padding:4px 8px;border-radius:4px;text-align:center;font-weight:bold;">'
         f'👤 {utilisateur}</div>',
         unsafe_allow_html=True
     )
-
-    # Configuration sidebar
-    st.sidebar.header("Paramètres")
-
-    # Choix de l'action - tout visible par défaut
-    st.sidebar.header("🎯 Sélection rapide")
 
     # Actions par utilisateur
     actions_par_utilisateur = {
@@ -234,95 +224,66 @@ def main():
     # Actions disponibles pour l'utilisateur courant
     actions_disponibles = actions_par_utilisateur[utilisateur]
 
-    # Fonction pour déterminer la recommandation
-    def get_recommendation_signal(ticker_symbol):
-        try:
-            # Charger les données pour cette action
-            ticker = yf.Ticker(ticker_symbol)
-            data = ticker.history(period="1y")
-
-            if data.empty:
-                return "#FFFFFF", "Neutre"  # Blanc par défaut
-
-            # Calculer les moyennes mobiles
-            data['MA50'] = data['Close'].rolling(window=50).mean()
-            data['MA200'] = data['Close'].rolling(window=200).mean()
-
-            prix_actuel = data['Close'].iloc[-1]
-            dernier_ma50 = data['MA50'].iloc[-1]
-            dernier_ma200 = data['MA200'].iloc[-1]
-
-            # Déterminer la recommandation
-            if prix_actuel > dernier_ma50 > dernier_ma200:
-                return "#90EE90", "Acheter"  # Vert clair
-            elif prix_actuel < dernier_ma50 < dernier_ma200:
-                return "#FFB6C1", "Vendre"  # Rouge clair
-            else:
-                return "#FFE4B5", "Attente"  # Orange clair
-
-        except:
-            return "#FFFFFF", "Neutre"  # Blanc par défaut en cas d'erreur
-
-    # Construire la liste des actions avec couleurs pour affichage
+    # Si le ticker sélectionné n'est pas dans la liste, reset
     liste_tickers = list(actions_disponibles.keys())
-    liste_noms = list(actions_disponibles.values())
-
-    # Initialiser le ticker sélectionné dans session_state
-    if 'selected_ticker' not in st.session_state:
-        st.session_state.selected_ticker = "^GSPC"
-
-    # Si le ticker sélectionné n'est pas dans la liste de l'utilisateur courant, reset
     if st.session_state.selected_ticker not in liste_tickers:
         st.session_state.selected_ticker = liste_tickers[0]
 
-    selected_ticker = st.session_state.selected_ticker
+    # Fonction pour déterminer la recommandation
+    def get_recommendation_signal(ticker_symbol):
+        try:
+            ticker = yf.Ticker(ticker_symbol)
+            data = ticker.history(period="1y")
+            if data.empty:
+                return "#FFFFFF", "Neutre"
+            data['MA50'] = data['Close'].rolling(window=50).mean()
+            data['MA200'] = data['Close'].rolling(window=200).mean()
+            prix_actuel = data['Close'].iloc[-1]
+            dernier_ma50 = data['MA50'].iloc[-1]
+            dernier_ma200 = data['MA200'].iloc[-1]
+            if prix_actuel > dernier_ma50 > dernier_ma200:
+                return "#90EE90", "Acheter"
+            elif prix_actuel < dernier_ma50 < dernier_ma200:
+                return "#FFB6C1", "Vendre"
+            else:
+                return "#FFE4B5", "Attente"
+        except:
+            return "#FFFFFF", "Neutre"
 
-    # Afficher les actions avec couleurs de recommandation en HTML
-    st.sidebar.write("**Sélectionnez une action :**")
+    # Sélection rapide des actions avec couleurs de recommandation
+    st.sidebar.subheader("🎯 Sélection rapide")
 
-    # Créer les boutons colorés en 2 colonnes
-    cols = st.sidebar.columns(2)
+    # Construire les options du radio avec noms
+    liste_noms = list(actions_disponibles.values())
 
-    for i, (ticker, nom) in enumerate(actions_disponibles.items()):
-        col = cols[i % 2]
-        bg_color, signal = get_recommendation_signal(ticker)
-        is_selected = (ticker == selected_ticker)
+    # Trouver l'index de l'action sélectionnée
+    idx_selected = liste_tickers.index(st.session_state.selected_ticker)
 
-        # Bordure rouge si sélectionné
-        border_style = "border:3px solid red;" if is_selected else "border:1px solid #ccc;"
-        font_style = "font-weight:900;" if is_selected else "font-weight:bold;"
+    # Radio pour sélectionner l'action (fonctionne nativement)
+    action_choisie = st.sidebar.radio(
+        "Action :",
+        liste_noms,
+        index=idx_selected,
+        label_visibility="collapsed"
+    )
 
-        # Afficher le bloc coloré cliquable
-        col.markdown(
-            f'<div style="background-color:{bg_color};{border_style}{font_style}'
-            f'padding:6px 4px;border-radius:4px;text-align:center;margin-bottom:2px;'
-            f'font-size:12px;cursor:pointer;">'
-            f'{nom}</div>',
+    # Retrouver le ticker correspondant
+    idx_action = liste_noms.index(action_choisie)
+    selected_ticker = liste_tickers[idx_action]
+    st.session_state.selected_ticker = selected_ticker
+
+    # Afficher les couleurs de recommandation pour chaque action
+    st.sidebar.write("**Recommandations :**")
+    for ticker_key, nom in actions_disponibles.items():
+        bg_color, signal = get_recommendation_signal(ticker_key)
+        is_selected = (ticker_key == selected_ticker)
+        border = "border:3px solid red;" if is_selected else ""
+        st.sidebar.markdown(
+            f'<div style="background-color:{bg_color};{border}'
+            f'padding:3px 6px;border-radius:3px;margin-bottom:2px;font-size:11px;">'
+            f'{"👉 " if is_selected else ""}{nom} → <b>{signal}</b></div>',
             unsafe_allow_html=True
         )
-
-        # Bouton invisible pour la détection de clic
-        if col.button("▸", key=f"btn_{ticker}", use_container_width=True):
-            st.session_state.selected_ticker = ticker
-            selected_ticker = ticker
-
-    # CSS global pour réduire la taille des petits boutons de sélection
-    st.sidebar.markdown("""
-    <style>
-    section[data-testid="stSidebar"] button {
-        height: 20px !important;
-        min-height: 20px !important;
-        padding: 0px !important;
-        font-size: 8px !important;
-        margin-top: -8px !important;
-        margin-bottom: 0px !important;
-        opacity: 0.3;
-    }
-    section[data-testid="stSidebar"] .stMarkdown div {
-        margin-bottom: 0px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
