@@ -70,17 +70,6 @@ def main():
         index=3  # 1 an par défaut pour MA200
     )
 
-    # Bouton d'analyse des croisements
-    if st.sidebar.button("🔍 Détecter les croisements MA50/MA200"):
-        # Vérifier si la période est suffisante pour MA200
-        if periode in ["1mo", "3mo", "6mo"]:
-            st.sidebar.warning("⚠️ Pour les croisements MA50/MA200, sélectionnez une période d'au moins 1 an")
-            st.session_state.show_crossovers = False
-        else:
-            st.session_state.show_crossovers = True
-    else:
-        st.session_state.show_crossovers = st.session_state.get('show_crossovers', False)
-
     st.title(f"📈 {nom_action} Demo")
     st.markdown(f"Visualisation et analyse de {nom_action}")
 
@@ -125,35 +114,82 @@ def main():
     )
     st.plotly_chart(ma_fig, use_container_width=True)
 
-    # Recommandation de trading
+    # Recommandation de trading avec croisements
     st.subheader("🎯 Recommandation de trading")
     dernier_ma20 = data['MA20'].iloc[-1]
     dernier_ma50 = data['MA50'].iloc[-1]
 
-    col1, col2, col3 = st.columns(3)
+    # Ajouter MA200 pour l'analyse si période suffisante
+    if periode not in ["1mo", "3mo", "6mo"]:
+        data['MA200'] = data['Close'].rolling(window=200).mean()
+        dernier_ma200 = data['MA200'].iloc[-1]
 
-    with col1:
-        if prix_actuel > dernier_ma20 > dernier_ma50:
-            st.success("🟢 **ACHETER**")
-            st.write("Tendance haussière confirmée")
-        elif prix_actuel < dernier_ma20 < dernier_ma50:
-            st.error("🔴 **VENDRE**")
-            st.write("Tendance baissière confirmée")
-        else:
-            st.warning("🟡 **ATTENTE**")
-            st.write("Tendance incertaine")
+        # Détecter les croisements récents
+        golden_crosses, death_crosses = detecter_croisements_ma(data)
 
-    with col2:
-        st.write("**Signaux techniques**")
-        st.write(f"- Prix vs MA20: {'✅' if prix_actuel > dernier_ma20 else '❌'}")
-        st.write(f"- MA20 vs MA50: {'✅' if dernier_ma20 > dernier_ma50 else '❌'}")
-        st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+        col1, col2, col3, col4 = st.columns(4)
 
-    with col3:
-        st.write("**Niveaux clés**")
-        st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
-        st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
-        st.write(f"- Rendement 20j: {((prix_actuel / data['Close'].iloc[-20]) - 1) * 100:+.1f}%")
+        with col1:
+            if prix_actuel > dernier_ma20 > dernier_ma50:
+                st.success("🟢 **ACHETER**")
+                st.write("Tendance haussière confirmée")
+            elif prix_actuel < dernier_ma20 < dernier_ma50:
+                st.error("🔴 **VENDRE**")
+                st.write("Tendance baissière confirmée")
+            else:
+                st.warning("🟡 **ATTENTE**")
+                st.write("Tendance incertaine")
+
+        with col2:
+            st.write("**Signaux MA**")
+            st.write(f"- Prix vs MA20: {'✅' if prix_actuel > dernier_ma20 else '❌'}")
+            st.write(f"- MA20 vs MA50: {'✅' if dernier_ma20 > dernier_ma50 else '❌'}")
+            st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
+
+        with col3:
+            st.write("**Croisements récents**")
+            if golden_crosses:
+                dernier_gc = golden_crosses[-1]
+                st.write(f"🟢 GC: {dernier_gc.strftime('%d/%m/%Y')}")
+            else:
+                st.write("🟢 GC: Aucun")
+            if death_crosses:
+                dernier_dc = death_crosses[-1]
+                st.write(f"🔴 DC: {dernier_dc.strftime('%d/%m/%Y')}")
+            else:
+                st.write("🔴 DC: Aucun")
+
+        with col4:
+            st.write("**Niveaux clés**")
+            st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
+            st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
+            st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+    else:
+        # Version simplifiée pour périodes courtes
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            if prix_actuel > dernier_ma20 > dernier_ma50:
+                st.success("🟢 **ACHETER**")
+                st.write("Tendance haussière")
+            elif prix_actuel < dernier_ma20 < dernier_ma50:
+                st.error("🔴 **VENDRE**")
+                st.write("Tendance baissière")
+            else:
+                st.warning("🟡 **ATTENTE**")
+                st.write("Tendance incertaine")
+
+        with col2:
+            st.write("**Signaux techniques**")
+            st.write(f"- Prix vs MA20: {'✅' if prix_actuel > dernier_ma20 else '❌'}")
+            st.write(f"- MA20 vs MA50: {'✅' if dernier_ma20 > dernier_ma50 else '❌'}")
+            st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+
+        with col3:
+            st.write("**Niveaux clés**")
+            st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
+            st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
+            st.write(f"- Rendement 20j: {((prix_actuel / data['Close'].iloc[-20]) - 1) * 100:+.1f}%")
 
     # Statistiques
     st.subheader("📈 Statistiques")
@@ -193,94 +229,6 @@ def main():
         labels={'Volume': 'Volume', 'index': 'Date'}
     )
     st.plotly_chart(fig_volume, use_container_width=True)
-
-    # Section des croisements MA50/MA200
-    if st.session_state.get('show_crossovers', False):
-        st.subheader("🎯 Analyse des croisements MA50/MA200")
-
-        golden_crosses, death_crosses = detecter_croisements_ma(data)
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.write("**🟢 Golden Cross (Signal d'achat)**")
-            if golden_crosses:
-                for date in golden_crosses[-5:]:  # 5 derniers
-                    prix = data.loc[date, 'Close']
-                    st.write(f"- {date.strftime('%d/%m/%Y')} : {prix:.2f} $")
-            else:
-                st.write("Aucun Golden Cross détecté sur la période")
-
-        with col2:
-            st.write("**🔴 Death Cross (Signal de vente)**")
-            if death_crosses:
-                for date in death_crosses[-5:]:  # 5 derniers
-                    prix = data.loc[date, 'Close']
-                    st.write(f"- {date.strftime('%d/%m/%Y')} : {prix:.2f} $")
-            else:
-                st.write("Aucun Death Cross détecté sur la période")
-
-        # Graphique avec croisements
-        st.write("**Graphique avec signaux de trading**")
-        data_ma = data.copy()
-        data_ma['MA50'] = data_ma['Close'].rolling(window=50).mean()
-        data_ma['MA200'] = data_ma['Close'].rolling(window=200).mean()
-
-        fig_croisements = go.Figure()
-
-        # Ajouter les lignes
-        fig_croisements.add_trace(go.Scatter(
-            x=data_ma.index, y=data_ma['Close'],
-            mode='lines', name='Prix', line=dict(color='blue')
-        ))
-        fig_croisements.add_trace(go.Scatter(
-            x=data_ma.index, y=data_ma['MA50'],
-            mode='lines', name='MA50', line=dict(color='orange')
-        ))
-        fig_croisements.add_trace(go.Scatter(
-            x=data_ma.index, y=data_ma['MA200'],
-            mode='lines', name='MA200', line=dict(color='red')
-        ))
-
-        # Ajouter les marqueurs de croisements
-        if golden_crosses:
-            gc_dates = [date for date in golden_crosses if date in data_ma.index]
-            gc_prices = [data_ma.loc[date, 'Close'] for date in gc_dates]
-            fig_croisements.add_trace(go.Scatter(
-                x=gc_dates, y=gc_prices,
-                mode='markers',
-                name='Golden Cross',
-                marker=dict(color='green', size=10, symbol='triangle-up')
-            ))
-
-        if death_crosses:
-            dc_dates = [date for date in death_crosses if date in data_ma.index]
-            dc_prices = [data_ma.loc[date, 'Close'] for date in dc_dates]
-            fig_croisements.add_trace(go.Scatter(
-                x=dc_dates, y=dc_prices,
-                mode='markers',
-                name='Death Cross',
-                marker=dict(color='red', size=10, symbol='triangle-down')
-            ))
-
-        fig_croisements.update_layout(
-            title=f"Analyse technique {nom_action} - Croisements MA50/MA200",
-            xaxis_title='Date',
-            yaxis_title='Prix ($)',
-            hovermode='x unified'
-        )
-
-        st.plotly_chart(fig_croisements, use_container_width=True)
-
-        # Stratégie actuelle
-        st.write("**📊 Stratégie actuelle**")
-        dernier_ma50 = data_ma['MA50'].iloc[-1]
-        dernier_ma200 = data_ma['MA200'].iloc[-1]
-
-        if dernier_ma50 > dernier_ma200:
-            st.success(f"🟢 tendance HAUSSIÈRE - MA50 ({dernier_ma50:.2f} $) > MA200 ({dernier_ma200:.2f} $)")
-        else:
-            st.error(f"🔴 tendance BAISSIÈRE - MA50 ({dernier_ma50:.2f} $) < MA200 ({dernier_ma200:.2f} $)")
 
 if __name__ == "__main__":
     main()
