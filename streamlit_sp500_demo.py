@@ -164,6 +164,9 @@ def main():
     st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
 
     # Sidebar avec documentation
+    st.sidebar.markdown("## 📈 Site d'analyse d'actions")
+    st.sidebar.markdown("*Pour Romain, Roger et Michel*")
+    st.sidebar.markdown("---")
     st.sidebar.markdown(f"**Version : {version}**")
     st.sidebar.markdown("---")
 
