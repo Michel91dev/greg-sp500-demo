@@ -66,8 +66,8 @@ def main():
 
     periode = st.sidebar.selectbox(
         "Période",
-        ["1mo", "3mo", "6mo", "1y", "2y", "5y"],
-        index=3  # 1 an par défaut pour MA200
+        ["1y", "2y", "5y"],
+        index=0  # 1 an par défaut pour MA200
     )
 
     st.title(f"📈 {nom_action} Demo")
@@ -100,107 +100,65 @@ def main():
     col3.metric("Plus Haut", f"{data['High'].max():.2f} $")
     col4.metric("Plus Bas", f"{data['Low'].min():.2f} $")
 
-    # Moyennes mobiles d'abord
-    st.subheader("📈 Moyennes mobiles")
-    data['MA20'] = data['Close'].rolling(window=20).mean()
+    # Moyennes mobiles - toujours MA50/MA200
+    st.subheader("📈 Moyennes mobiles (MA50/MA200)")
     data['MA50'] = data['Close'].rolling(window=50).mean()
+    data['MA200'] = data['Close'].rolling(window=200).mean()
 
-    # Ajouter MA200 si période suffisante
-    if periode not in ["1mo", "3mo", "6mo"]:
-        data['MA200'] = data['Close'].rolling(window=200).mean()
-        ma_fig = px.line(
-            data.tail(200).dropna(),  # 200 derniers jours pour MA200
-            x=data.tail(200).dropna().index,
-            y=['Close', 'MA50', 'MA200'],
-            title="Prix et moyennes mobiles (MA50/MA200)",
-            labels={'value': 'Prix ($)', 'index': 'Date'}
-        )
-    else:
-        ma_fig = px.line(
-            data.tail(100).dropna(),  # 100 derniers jours sans NaN
-            x=data.tail(100).dropna().index,
-            y=['Close', 'MA20', 'MA50'],
-            title="Prix et moyennes mobiles (MA20/MA50)",
-            labels={'value': 'Prix ($)', 'index': 'Date'}
-        )
+    ma_fig = px.line(
+        data.tail(200).dropna(),  # 200 derniers jours pour MA200
+        x=data.tail(200).dropna().index,
+        y=['Close', 'MA50', 'MA200'],
+        title="Prix et moyennes mobiles (MA50/MA200)",
+        labels={'value': 'Prix ($)', 'index': 'Date'}
+    )
     st.plotly_chart(ma_fig, use_container_width=True)
 
     # Recommandation de trading avec croisements
     st.subheader("🎯 Recommandation de trading")
-    dernier_ma20 = data['MA20'].iloc[-1]
     dernier_ma50 = data['MA50'].iloc[-1]
+    dernier_ma200 = data['MA200'].iloc[-1]
 
-    # Ajouter MA200 pour l'analyse si période suffisante
-    if periode not in ["1mo", "3mo", "6mo"]:
-        data['MA200'] = data['Close'].rolling(window=200).mean()
-        dernier_ma200 = data['MA200'].iloc[-1]
+    # Détecter les croisements récents
+    golden_crosses, death_crosses = detecter_croisements_ma(data)
 
-        # Détecter les croisements récents
-        golden_crosses, death_crosses = detecter_croisements_ma(data)
+    col1, col2, col3, col4 = st.columns(4)
 
-        col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        if prix_actuel > dernier_ma50 > dernier_ma200:
+            st.success("🟢 **ACHETER**")
+            st.write("Tendance haussière confirmée")
+        elif prix_actuel < dernier_ma50 < dernier_ma200:
+            st.error("🔴 **VENDRE**")
+            st.write("Tendance baissière confirmée")
+        else:
+            st.warning("🟡 **ATTENTE**")
+            st.write("Tendance incertaine")
 
-        with col1:
-            if prix_actuel > dernier_ma20 > dernier_ma50:
-                st.success("🟢 **ACHETER**")
-                st.write("Tendance haussière confirmée")
-            elif prix_actuel < dernier_ma20 < dernier_ma50:
-                st.error("🔴 **VENDRE**")
-                st.write("Tendance baissière confirmée")
-            else:
-                st.warning("🟡 **ATTENTE**")
-                st.write("Tendance incertaine")
+    with col2:
+        st.write("**Signaux MA**")
+        st.write(f"- Prix vs MA50: {'✅' if prix_actuel > dernier_ma50 else '❌'}")
+        st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
+        st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
 
-        with col2:
-            st.write("**Signaux MA**")
-            st.write(f"- Prix vs MA20: {'✅' if prix_actuel > dernier_ma20 else '❌'}")
-            st.write(f"- MA20 vs MA50: {'✅' if dernier_ma20 > dernier_ma50 else '❌'}")
-            st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
+    with col3:
+        st.write("**Croisements récents**")
+        if golden_crosses:
+            dernier_gc = golden_crosses[-1]
+            st.write(f"🟢 GC: {dernier_gc.strftime('%d/%m/%Y')}")
+        else:
+            st.write("🟢 GC: Aucun")
+        if death_crosses:
+            dernier_dc = death_crosses[-1]
+            st.write(f"🔴 DC: {dernier_dc.strftime('%d/%m/%Y')}")
+        else:
+            st.write("🔴 DC: Aucun")
 
-        with col3:
-            st.write("**Croisements récents**")
-            if golden_crosses:
-                dernier_gc = golden_crosses[-1]
-                st.write(f"🟢 GC: {dernier_gc.strftime('%d/%m/%Y')}")
-            else:
-                st.write("🟢 GC: Aucun")
-            if death_crosses:
-                dernier_dc = death_crosses[-1]
-                st.write(f"🔴 DC: {dernier_dc.strftime('%d/%m/%Y')}")
-            else:
-                st.write("🔴 DC: Aucun")
-
-        with col4:
-            st.write("**Niveaux clés**")
-            st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
-            st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
-            st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
-    else:
-        # Version simplifiée pour périodes courtes
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            if prix_actuel > dernier_ma20 > dernier_ma50:
-                st.success("🟢 **ACHETER**")
-                st.write("Tendance haussière")
-            elif prix_actuel < dernier_ma20 < dernier_ma50:
-                st.error("🔴 **VENDRE**")
-                st.write("Tendance baissière")
-            else:
-                st.warning("🟡 **ATTENTE**")
-                st.write("Tendance incertaine")
-
-        with col2:
-            st.write("**Signaux techniques**")
-            st.write(f"- Prix vs MA20: {'✅' if prix_actuel > dernier_ma20 else '❌'}")
-            st.write(f"- MA20 vs MA50: {'✅' if dernier_ma20 > dernier_ma50 else '❌'}")
-            st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
-
-        with col3:
-            st.write("**Niveaux clés**")
-            st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
-            st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
-            st.write(f"- Rendement 20j: {((prix_actuel / data['Close'].iloc[-20]) - 1) * 100:+.1f}%")
+    with col4:
+        st.write("**Niveaux clés**")
+        st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
+        st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
+        st.write(f"- Rendement 50j: {((prix_actuel / data['Close'].iloc[-50]) - 1) * 100:+.1f}%")
 
     # Statistiques
     st.subheader("📈 Statistiques")
