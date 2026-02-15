@@ -208,20 +208,6 @@ def main():
     with col_user3:
         st.markdown(create_user_button("Roger", "#DAA520", "Roger"), unsafe_allow_html=True)
 
-    # Bouton d'aide
-    show_help = st.sidebar.button("❓ Documentation")
-
-    if show_help:
-        st.sidebar.markdown("## 📚 Documentation des Indicateurs")
-
-        indicator_choice = st.sidebar.selectbox(
-            "Choisir un indicateur :",
-            ["MA50/MA200", "RSI", "MACD", "Bollinger"]
-        )
-
-        st.sidebar.markdown(docs[indicator_choice])
-        st.sidebar.markdown("*💡 Astuce : Lisez la documentation pour comprendre comment utiliser chaque indicateur !*")
-
     # Configuration sidebar
     st.sidebar.header("Paramètres")
 
@@ -293,41 +279,45 @@ def main():
         # Créer un bouton Streamlit normal (qui fonctionne)
         if is_selected:
             # Bouton sélectionné avec cadre rouge
-            button_style = """
-            <style>
-            div.stButton > button:first-child {
-                background-color: """ + bg_color + """ !important;
-                color: black !important;
-                border: 4px solid red !important;
-                padding: 8px !important;
-                border-radius: 4px !important;
-                width: 100% !important;
-                font-weight: bold !important;
-                box-shadow: 0 0 15px rgba(255,0,0,0.5) !important;
-            }
-            </style>
-            """
-            col.markdown(button_style, unsafe_allow_html=True)
             if col.button(f"👉 {nom}", key=f"btn_{ticker}", use_container_width=True):
                 selected_ticker = ticker
         else:
             # Bouton normal
-            button_style = """
-            <style>
-            div.stButton > button:first-child {
-                background-color: """ + bg_color + """ !important;
-                color: black !important;
-                border: 2px solid """ + bg_color + """ !important;
-                padding: 8px !important;
-                border-radius: 4px !important;
-                width: 100% !important;
-                font-weight: bold !important;
-            }
-            </style>
-            """
-            col.markdown(button_style, unsafe_allow_html=True)
             if col.button(nom, key=f"btn_{ticker}", use_container_width=True):
                 selected_ticker = ticker
+
+        # Appliquer le style CSS après le bouton
+        if is_selected:
+            button_style = f"""
+            <style>
+            button[data-testid="baseButton-secondary"] {{
+                background-color: {bg_color} !important;
+                color: black !important;
+                border: 4px solid red !important;
+                padding: 4px 8px !important;
+                border-radius: 4px !important;
+                font-weight: bold !important;
+                box-shadow: 0 0 15px rgba(255,0,0,0.5) !important;
+                margin-bottom: 2px !important;
+            }}
+            </style>
+            """
+        else:
+            button_style = f"""
+            <style>
+            button[data-testid="baseButton-secondary"] {{
+                background-color: {bg_color} !important;
+                color: black !important;
+                border: 2px solid {bg_color} !important;
+                padding: 4px 8px !important;
+                border-radius: 4px !important;
+                font-weight: bold !important;
+                margin-bottom: 2px !important;
+            }}
+            </style>
+            """
+
+        col.markdown(button_style, unsafe_allow_html=True)
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
@@ -361,6 +351,19 @@ def main():
     show_rsi = st.sidebar.checkbox("RSI", value=True, help="Surachat/Survente")
     show_macd = st.sidebar.checkbox("MACD", value=True, help="Tendance et momentum")
     show_bollinger = st.sidebar.checkbox("Bollinger Bands", value=False, help="Volatilité")
+
+    # Documentation tout en bas
+    st.sidebar.markdown("---")
+    show_help = st.sidebar.button("❓ Documentation")
+
+    if show_help:
+        st.sidebar.markdown("## 📚 Documentation des Indicateurs")
+        indicator_choice = st.sidebar.selectbox(
+            "Choisir un indicateur :",
+            ["MA50/MA200", "RSI", "MACD", "Bollinger"]
+        )
+        st.sidebar.markdown(docs[indicator_choice])
+        st.sidebar.markdown("*💡 Astuce : Lisez la documentation pour comprendre comment utiliser chaque indicateur !*")
 
     st.title(f"📈 {nom_action}")
     st.markdown(f"Analyse technique de {nom_action}")
