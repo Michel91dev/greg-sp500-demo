@@ -185,55 +185,58 @@ def main():
     # Configuration sidebar
     st.sidebar.header("Paramètres")
 
-    # Choix entre S&P 500 ou action personnalisée
-    mode = st.sidebar.radio("Mode d'analyse", ["S&P 500", "Actions populaires", "Action personnalisée"])
+    # Choix de l'action - tout visible par défaut
+    st.sidebar.header("🎯 Sélection rapide")
 
-    if mode == "S&P 500":
-        ticker_symbol = "^GSPC"
-        nom_action = "S&P 500"
-    elif mode == "Actions populaires":
-        # Actions populaires avec boutons rapides
-        st.sidebar.write("**Actions populaires :**")
+    # Actions avec noms complets et boutons visibles
+    actions_disponibles = {
+        "^GSPC": "📈 S&P 500",
+        "SATS": "🛰️ EchoStar",
+        "LNAI": "🤖 Lanai Technology",
+        "DBX": "☁️ Dropbox",
+        "COIN": "₿ Coinbase",
+        "PYPL": "💳 PayPal",
+        "ZM": "🎥 Zoom",
+        "MSFT": "🖥️ Microsoft",
+        "AAPL": "📱 Apple",
+        "TSLA": "🚗 Tesla",
+        "NFLX": "🎬 Netflix",
+        "AMZN": "📦 Amazon",
+        "PANX.PA": "📺 Panasonic"
+    }
 
-        actions_populaires = {
-            "SATS": "EchoStar Corporation",
-            "LNAI": "Lanai Technology",
-            "DBX": "Dropbox",
-            "COIN": "Coinbase",
-            "PYPL": "PayPal",
-            "ZM": "Zoom",
-            "MSFT": "Microsoft",
-            "AAPL": "Apple",
-            "TSLA": "Tesla",
-            "NFLX": "Netflix",
-            "AMZN": "Amazon",
-            "PANX.PA": "Panasonic"
-        }
+    # Afficher tous les boutons visibles
+    st.sidebar.write("**Sélectionnez une action :**")
 
-        # Créer des colonnes pour les boutons
-        cols = st.sidebar.columns(3)
-        selected_ticker = None
+    # Créer une grille de boutons 2 colonnes pour plus de lisibilité
+    cols = st.sidebar.columns(2)
+    selected_ticker = None
 
-        for i, (ticker, nom) in enumerate(actions_populaires.items()):
-            col = cols[i % 3]
-            if col.button(f"{ticker}", help=nom, key=f"btn_{ticker}"):
-                selected_ticker = ticker
+    for i, (ticker, nom) in enumerate(actions_disponibles.items()):
+        col = cols[i % 2]
+        if col.button(f"{nom}", key=f"btn_{ticker}", use_container_width=True):
+            selected_ticker = ticker
 
-        if selected_ticker:
-            ticker_symbol = selected_ticker
-            nom_action = f"{selected_ticker} - {actions_populaires[selected_ticker]}"
+    # Option personnalisée en dessous
+    st.sidebar.markdown("---")
+    custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
+
+    if custom_mode:
+        ticker_input = st.sidebar.text_input("Ticker personnalisé (ex: GOOGL, META)", value="").upper()
+        if ticker_input:
+            selected_ticker = ticker_input
+            nom_action = f"{ticker_input} (personnalisé)"
         else:
-            st.sidebar.info("Sélectionnez une action ci-dessus")
+            st.sidebar.info("Entrez un ticker personnalisé")
             st.stop()
+    elif selected_ticker:
+        nom_action = actions_disponibles[selected_ticker]
     else:
-        ticker_input = st.sidebar.text_input("Ticker de l'action (ex: AAPL, GOOGL, MSFT)", value="AAPL").upper()
-        ticker_symbol = ticker_input
-        nom_action = ticker_input
+        # Par défaut : S&P 500
+        selected_ticker = "^GSPC"
+        nom_action = "📈 S&P 500"
 
-        # Validation du ticker
-        if not ticker_input:
-            st.sidebar.error("Veuillez entrer un ticker valide")
-            st.stop()
+    ticker_symbol = selected_ticker
 
     periode = st.sidebar.selectbox(
         "Période",
