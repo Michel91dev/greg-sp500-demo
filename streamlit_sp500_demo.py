@@ -227,7 +227,10 @@ def main():
         "TSLA": "🚗 Tesla",
         "NFLX": "🎬 Netflix",
         "AMZN": "📦 Amazon",
-        "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+        "PANX.PA": "📈 Amundi NASDAQ-100 ETF",
+        "FGR.PA": "🏗️ Eiffage",
+        "CAN.PA": "📺 Canal+",
+        "SOI.PA": "⚡ Soitec"
     }
 
     # Afficher tous les boutons visibles
@@ -290,29 +293,41 @@ def main():
         if is_selected:
             button_style = f"""
             <style>
-            button[data-testid="baseButton-secondary"] {{
+            div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
+                margin-bottom: 1px !important;
+                padding-bottom: 1px !important;
+            }}
+            button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
                 border: 4px solid red !important;
-                padding: 4px 8px !important;
+                padding: 2px 6px !important;
                 border-radius: 4px !important;
                 font-weight: bold !important;
                 box-shadow: 0 0 15px rgba(255,0,0,0.5) !important;
-                margin-bottom: 2px !important;
+                margin: 0px !important;
+                height: auto !important;
+                min-height: 28px !important;
             }}
             </style>
             """
         else:
             button_style = f"""
             <style>
-            button[data-testid="baseButton-secondary"] {{
+            div[data-testid="stVerticalBlock"] > div:has(button[key="btn_{ticker}"]) {{
+                margin-bottom: 1px !important;
+                padding-bottom: 1px !important;
+            }}
+            button[key="btn_{ticker}"] {{
                 background-color: {bg_color} !important;
                 color: black !important;
                 border: 2px solid {bg_color} !important;
-                padding: 4px 8px !important;
+                padding: 2px 6px !important;
                 border-radius: 4px !important;
                 font-weight: bold !important;
-                margin-bottom: 2px !important;
+                margin: 0px !important;
+                height: auto !important;
+                min-height: 28px !important;
             }}
             </style>
             """
