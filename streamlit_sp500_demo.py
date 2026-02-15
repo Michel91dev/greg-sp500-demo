@@ -10,6 +10,14 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
+# Lire la version depuis le fichier
+def get_version():
+    try:
+        with open('version.txt', 'r') as f:
+            return f.read().strip()
+    except:
+        return "1.0.0"
+
 def detecter_croisements_ma(data):
     """Détecte les croisements MA50/MA200"""
     # Calculer les moyennes mobiles
@@ -43,7 +51,12 @@ def detecter_croisements_ma(data):
     return golden_crosses, death_crosses
 
 def main():
+    version = get_version()
     st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
+
+    # Afficher la version dans la sidebar
+    st.sidebar.markdown(f"**Version : {version}**")
+    st.sidebar.markdown("---")
 
     # Configuration sidebar
     st.sidebar.header("Paramètres")
