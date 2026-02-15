@@ -214,10 +214,10 @@ def main():
     show_macd = st.sidebar.checkbox("MACD", value=True, help="Tendance et momentum")
     show_bollinger = st.sidebar.checkbox("Bollinger Bands", value=False, help="Volatilité")
 
-    st.title(f"📈 {nom_action} Demo")
-    st.markdown(f"Visualisation et analyse de {nom_action}")
+    st.title(f"📈 Dashboard d'investissements Michel, Romain et Roger")
+    st.markdown(f"Analyse technique de {nom_action}")
 
-    # Chargement des données
+    # Chargement des données (d'abord pour avoir prix_actuel)
     with st.spinner(f"Chargement des données de {nom_action}..."):
         try:
             # Ticker de l'action
@@ -243,6 +243,58 @@ def main():
     col2.metric("Variation", f"{variation:+.2f}%", delta=f"{variation:+.2f}%")
     col3.metric("Plus Haut", f"{data['High'].max():.2f} $")
     col4.metric("Plus Bas", f"{data['Low'].min():.2f} $")
+
+    # Recommandation de trading avec croisements (en premier)
+    st.subheader("🎯 Recommandation de trading")
+
+    # Calculer les moyennes mobiles pour la recommandation
+    data['MA50'] = data['Close'].rolling(window=50).mean()
+    data['MA200'] = data['Close'].rolling(window=200).mean()
+    dernier_ma50 = data['MA50'].iloc[-1]
+    dernier_ma200 = data['MA200'].iloc[-1]
+
+    # Détecter les croisements récents
+    golden_crosses, death_crosses = detecter_croisements_ma(data)
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        if prix_actuel > dernier_ma50 > dernier_ma200:
+            st.success("🟢 **ACHETER**")
+            st.write("Tendance haussière confirmée")
+        elif prix_actuel < dernier_ma50 < dernier_ma200:
+            st.error("🔴 **VENDRE**")
+            st.write("Tendance baissière confirmée")
+        else:
+            st.warning("🟡 **ATTENTE**")
+            st.write("Tendance incertaine")
+
+    with col2:
+        st.write("**Signaux MA**")
+        st.write(f"- Prix vs MA50: {'✅' if prix_actuel > dernier_ma50 else '❌'}")
+        st.write(f"- MA50 vs MA200: {'✅' if dernier_ma50 > dernier_ma200 else '❌'}")
+        st.write(f"- Volatilité: {data['Close'].pct_change().std() * 100:.1f}%")
+
+    with col3:
+        st.write("**Croisements récents**")
+        if golden_crosses:
+            dernier_gc = golden_crosses[-1]
+            st.write(f"🟢 GC: {dernier_gc.strftime('%d/%m/%Y')}")
+        else:
+            st.write("🟢 GC: Aucun")
+        if death_crosses:
+            dernier_dc = death_crosses[-1]
+            st.write(f"🔴 DC: {dernier_dc.strftime('%d/%m/%Y')}")
+        else:
+            st.write("🔴 DC: Aucun")
+
+    with col4:
+        st.write("**Niveaux clés**")
+        st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
+        st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
+        st.write(f"- Rendement 50j: {((prix_actuel / data['Close'].iloc[-50]) - 1) * 100:+.1f}%")
+
+    st.markdown("---")
 
     # Graphiques des indicateurs sélectionnés
     if show_ma:
