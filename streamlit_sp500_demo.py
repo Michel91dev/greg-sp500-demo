@@ -214,24 +214,35 @@ def main():
     # Choix de l'action - tout visible par défaut
     st.sidebar.header("🎯 Sélection rapide")
 
-    # Actions originales de Michel (toutes pour lui)
-    actions_disponibles = {
-        "^GSPC": "📈 S&P 500",
-        "SATS": "🛰️ EchoStar",
-        "DBX": "☁️ Dropbox",
-        "COIN": "₿ Coinbase",
-        "PYPL": "💳 PayPal",
-        "ZM": "🎥 Zoom",
-        "MSFT": "🖥️ Microsoft",
-        "AAPL": "📱 Apple",
-        "TSLA": "🚗 Tesla",
-        "NFLX": "🎬 Netflix",
-        "AMZN": "📦 Amazon",
-        "PANX.PA": "📈 Amundi NASDAQ-100 ETF",
-        "FGR.PA": "🏗️ Eiffage",
-        "CAN.PA": "📺 Canal+",
-        "SOI.PA": "⚡ Soitec"
+    # Actions par utilisateur
+    actions_par_utilisateur = {
+        "Michel": {
+            "^GSPC": "📈 S&P 500",
+            "SATS": "🛰️ EchoStar",
+            "DBX": "☁️ Dropbox",
+            "COIN": "₿ Coinbase",
+            "PYPL": "💳 PayPal",
+            "ZM": "🎥 Zoom",
+            "MSFT": "🖥️ Microsoft",
+            "AAPL": "📱 Apple",
+            "TSLA": "🚗 Tesla",
+            "NFLX": "🎬 Netflix",
+            "AMZN": "📦 Amazon",
+            "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+        },
+        "Romain": {
+            "^GSPC": "📈 S&P 500",
+            "FGR.PA": "🏗️ Eiffage",
+            "CAN.PA": "📺 Canal+",
+            "SOI.PA": "⚡ Soitec"
+        },
+        "Roger": {
+            "^GSPC": "📈 S&P 500"
+        }
     }
+
+    # Actions disponibles pour l'utilisateur courant
+    actions_disponibles = actions_par_utilisateur[utilisateur]
 
     # Afficher tous les boutons visibles
     st.sidebar.write("**Sélectionnez une action :**")
@@ -304,10 +315,12 @@ def main():
                 padding: 2px 6px !important;
                 border-radius: 4px !important;
                 font-weight: bold !important;
-                box-shadow: 0 0 15px rgba(255,0,0,0.5) !important;
+                box-shadow: 0 0 15px rgba(255,0,0,0.8) !important;
                 margin: 0px !important;
                 height: auto !important;
                 min-height: 28px !important;
+                outline: 3px solid red !important;
+                outline-offset: 2px !important;
             }}
             </style>
             """
