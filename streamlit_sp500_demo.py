@@ -278,18 +278,6 @@ def main():
     selected_ticker = liste_tickers[idx_action]
     st.session_state.selected_ticker = selected_ticker
 
-    # Afficher les blocs colorés avec bordure rouge sur la sélection
-    for ticker_key, nom in actions_disponibles.items():
-        bg_color, signal = signaux_cache[ticker_key]
-        is_selected = (ticker_key == selected_ticker)
-        border = "border:3px solid red;" if is_selected else ""
-        st.sidebar.markdown(
-            f'<div style="background-color:{bg_color};{border}'
-            f'padding:3px 6px;border-radius:3px;margin-bottom:2px;font-size:11px;">'
-            f'{"👉 " if is_selected else ""}{nom} → <b>{signal}</b></div>',
-            unsafe_allow_html=True
-        )
-
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
 
@@ -336,8 +324,20 @@ def main():
         st.sidebar.markdown(docs[indicator_choice])
         st.sidebar.markdown("*💡 Astuce : Lisez la documentation pour comprendre comment utiliser chaque indicateur !*")
 
+    # CSS pour resserrer l'espacement vertical de la partie principale
+    st.markdown("""
+    <style>
+    .block-container { padding-top: 1rem !important; }
+    div[data-testid="stMetric"] { padding: 0px !important; }
+    h1 { margin-bottom: 0px !important; padding-bottom: 0px !important; }
+    h2 { margin-top: 0.3rem !important; margin-bottom: 0.2rem !important; }
+    div[data-testid="stHorizontalBlock"] { gap: 0.5rem !important; }
+    hr { margin-top: 0.3rem !important; margin-bottom: 0.3rem !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.title(f"📈 {nom_action}")
-    st.markdown(f"Analyse technique de {nom_action}")
+    st.caption(f"Analyse technique de {nom_action}")
 
     # Chargement des données (d'abord pour avoir prix_actuel)
     with st.spinner(f"Chargement des données de {nom_action}..."):
