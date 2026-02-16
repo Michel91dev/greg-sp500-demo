@@ -327,16 +327,19 @@ def main():
     # CSS pour resserrer l'espacement vertical de la partie principale
     st.markdown("""
     <style>
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-    div[data-testid="stMetric"] { padding: 0px !important; }
-    h1 { margin-bottom: 0px !important; padding-bottom: 0px !important; font-size: 1.8rem !important; }
-    h2 { margin-top: 0.2rem !important; margin-bottom: 0.1rem !important; font-size: 1.2rem !important; }
-    div[data-testid="stHorizontalBlock"] { gap: 0.3rem !important; }
-    hr { margin-top: 0.2rem !important; margin-bottom: 0.2rem !important; }
-    div[data-testid="stAlert"] { padding: 0.3rem 0.5rem !important; margin-bottom: 0.2rem !important; }
-    div[data-testid="stAlert"] p { margin: 0px !important; font-size: 0.85rem !important; }
-    div[data-testid="stCaptionContainer"] { margin-bottom: 0px !important; }
-    p { margin-bottom: 0.2rem !important; }
+    .block-container { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+    div[data-testid="stMetric"] { padding: 0px !important; margin-bottom: 0px !important; }
+    div[data-testid="stMetricValue"] { font-size: 1.3rem !important; }
+    h1 { margin: 0px !important; padding: 0px !important; font-size: 1.6rem !important; line-height: 1.2 !important; }
+    h2 { margin: 0px !important; padding: 0px !important; font-size: 1.1rem !important; line-height: 1.2 !important; }
+    div[data-testid="stHorizontalBlock"] { gap: 0.2rem !important; margin-bottom: 0px !important; }
+    hr { margin: 0.1rem 0 !important; }
+    div[data-testid="stAlert"] { padding: 0.2rem 0.5rem !important; margin: 0px !important; }
+    div[data-testid="stAlert"] p { margin: 0px !important; font-size: 0.82rem !important; line-height: 1.3 !important; }
+    div[data-testid="stCaptionContainer"] { margin: 0px !important; padding: 0px !important; }
+    div[data-testid="stElementContainer"] { margin-bottom: 0px !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0px !important; }
+    p { margin-bottom: 0.1rem !important; }
     </style>
     """, unsafe_allow_html=True)
 
