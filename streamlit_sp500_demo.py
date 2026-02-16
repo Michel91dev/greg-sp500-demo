@@ -217,7 +217,25 @@ def main():
             "SOI.PA": "⚡ Soitec"
         },
         "Roger": {
-            "^GSPC": "📈 S&P 500"
+            "^GSPC": "📈 S&P 500",
+            "SATS": "🛰️ EchoStar",
+            "TSM": "🔧 TSMC",
+            "NVDA": "🎮 NVIDIA",
+            "STX": "💾 Seagate",
+            "GOOGL": "🔍 Alphabet",
+            "AIBD": "🤖 AI & Big Data ETF",
+            "CCJ": "☢️ Cameco",
+            "AVGO": "📡 Broadcom",
+            "VST": "⚡ Vistra",
+            "V": "💳 Visa",
+            "AMD": "🖥️ AMD",
+            "ATLX": "🔋 Atlas Lithium",
+            "PDN.AX": "☢️ Paladin Energy",
+            "RHM.DE": "🛡️ Rheinmetall",
+            "NET": "☁️ Cloudflare",
+            "REGN": "💊 Regeneron",
+            "FRE.DE": "🏥 Fresenius",
+            "LRN": "🎓 Stride Inc"
         }
     }
 
