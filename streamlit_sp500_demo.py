@@ -327,12 +327,16 @@ def main():
     # CSS pour resserrer l'espacement vertical de la partie principale
     st.markdown("""
     <style>
-    .block-container { padding-top: 1rem !important; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
     div[data-testid="stMetric"] { padding: 0px !important; }
-    h1 { margin-bottom: 0px !important; padding-bottom: 0px !important; }
-    h2 { margin-top: 0.3rem !important; margin-bottom: 0.2rem !important; }
-    div[data-testid="stHorizontalBlock"] { gap: 0.5rem !important; }
-    hr { margin-top: 0.3rem !important; margin-bottom: 0.3rem !important; }
+    h1 { margin-bottom: 0px !important; padding-bottom: 0px !important; font-size: 1.8rem !important; }
+    h2 { margin-top: 0.2rem !important; margin-bottom: 0.1rem !important; font-size: 1.2rem !important; }
+    div[data-testid="stHorizontalBlock"] { gap: 0.3rem !important; }
+    hr { margin-top: 0.2rem !important; margin-bottom: 0.2rem !important; }
+    div[data-testid="stAlert"] { padding: 0.3rem 0.5rem !important; margin-bottom: 0.2rem !important; }
+    div[data-testid="stAlert"] p { margin: 0px !important; font-size: 0.85rem !important; }
+    div[data-testid="stCaptionContainer"] { margin-bottom: 0px !important; }
+    p { margin-bottom: 0.2rem !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -378,63 +382,43 @@ def main():
     # Détecter les croisements récents
     golden_crosses, death_crosses = detecter_croisements_ma(data)
 
-    col1, col2, col3, col4 = st.columns(4)
+    # Signal principal sur toute la largeur
+    if prix_actuel > dernier_ma50 > dernier_ma200:
+        st.success("🟢 **ACHETER** — Tendance haussière confirmée")
+    elif prix_actuel < dernier_ma50 < dernier_ma200:
+        st.error("🔴 **VENDRE** — Tendance baissière confirmée")
+    else:
+        st.warning("🟡 **ATTENTE** — Tendance incertaine")
 
-    with col1:
-        if prix_actuel > dernier_ma50 > dernier_ma200:
-            st.success("🟢 **ACHETER**")
-            st.write("Tendance haussière confirmée")
-        elif prix_actuel < dernier_ma50 < dernier_ma200:
-            st.error("🔴 **VENDRE**")
-            st.write("Tendance baissière confirmée")
-        else:
-            st.warning("🟡 **ATTENTE**")
-            st.write("Tendance incertaine")
+    # Signaux techniques sur toute la largeur (pas de retour à la ligne)
+    if prix_actuel > dernier_ma50:
+        st.success(f"📈 Prix > MA50 ({dernier_ma50:.2f} $) → **CONFIANCE** court terme — Le prix est au-dessus de sa moyenne récente")
+    else:
+        st.error(f"📉 Prix < MA50 ({dernier_ma50:.2f} $) → **PRUDENCE** court terme — Le prix est sous sa moyenne récente")
 
-    with col2:
-        st.write("**Signaux techniques**")
-        if prix_actuel > dernier_ma50:
-            st.success(f"📈 Prix > MA50 ({dernier_ma50:.2f} $) → **CONFIANCE** court terme")
-            st.write("   Le prix est au-dessus de sa moyenne récente")
-        else:
-            st.error(f"📉 Prix < MA50 ({dernier_ma50:.2f} $) → **PRUDENCE** court terme")
-            st.write("   Le prix est sous sa moyenne récente")
+    if dernier_ma50 > dernier_ma200:
+        st.success(f"🚀 MA50 > MA200 ({dernier_ma200:.2f} $) → **TENDANCE** haussière — La tendance récente est plus forte que le long terme")
+    else:
+        st.error(f"📉 MA50 < MA200 ({dernier_ma200:.2f} $) → **TENDANCE** baissière — La tendance récente est plus faible que le long terme")
 
-        if dernier_ma50 > dernier_ma200:
-            st.success(f"🚀 MA50 > MA200 ({dernier_ma200:.2f} $) → **TENDANCE** haussière")
-            st.write("   La tendance récente est plus forte que le long terme")
-        else:
-            st.error(f"📉 MA50 < MA200 ({dernier_ma200:.2f} $) → **TENDANCE** baissière")
-            st.write("   La tendance récente est plus faible que le long terme")
+    volatilite = data['Close'].pct_change().std() * 100
+    if volatilite < 1.5:
+        st.info(f"📊 Volatilité {volatilite:.1f}% → **STABLE**")
+    elif volatilite < 2.5:
+        st.warning(f"📊 Volatilité {volatilite:.1f}% → **MODÉRÉE**")
+    else:
+        st.error(f"📊 Volatilité {volatilite:.1f}% → **ÉLEVÉE**")
 
-        volatilite = data['Close'].pct_change().std() * 100
-        if volatilite < 1.5:
-            st.info(f"📊 Volatilité {volatilite:.1f}% → **STABLE**")
-        elif volatilite < 2.5:
-            st.warning(f"📊 Volatilité {volatilite:.1f}% → **MODÉRÉE**")
-        else:
-            st.error(f"📊 Volatilité {volatilite:.1f}% → **ÉLEVÉE**")
-
-    with col3:
-        st.write("**Croisements récents**")
-        if golden_crosses:
-            dernier_gc = golden_crosses[-1]
-            st.write(f"🟢 GC: {dernier_gc.strftime('%d/%m/%Y')}")
-        else:
-            st.write("🟢 GC: Aucun")
-        if death_crosses:
-            dernier_dc = death_crosses[-1]
-            st.write(f"🔴 DC: {dernier_dc.strftime('%d/%m/%Y')}")
-        else:
-            st.write("🔴 DC: Aucun")
-
-    with col4:
-        st.write("**Niveaux clés**")
-        st.write(f"- Support: {data['Low'].tail(20).min():.2f} $")
-        st.write(f"- Résistance: {data['High'].tail(20).max():.2f} $")
-        st.write(f"- Rendement 50j: {((prix_actuel / data['Close'].iloc[-50]) - 1) * 100:+.1f}%")
-
-    st.markdown("---")
+    # Croisements + Niveaux clés côte à côte, resserrés
+    col_g, col_d = st.columns(2)
+    with col_g:
+        st.markdown("**Croisements récents**")
+        gc_txt = f"🟢 GC: {golden_crosses[-1].strftime('%d/%m/%Y')}" if golden_crosses else "🟢 GC: Aucun"
+        dc_txt = f"🔴 DC: {death_crosses[-1].strftime('%d/%m/%Y')}" if death_crosses else "🔴 DC: Aucun"
+        st.write(f"{gc_txt} · {dc_txt}")
+    with col_d:
+        st.markdown("**Niveaux clés**")
+        st.write(f"Support: {data['Low'].tail(20).min():.2f} $ · Résistance: {data['High'].tail(20).max():.2f} $ · Rdt 50j: {((prix_actuel / data['Close'].iloc[-50]) - 1) * 100:+.1f}%")
 
     # Graphiques des indicateurs sélectionnés
     if show_ma:
