@@ -253,41 +253,38 @@ def main():
     # Sélection rapide fusionnée avec recommandations
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
-    # Construire les options du radio avec noms enrichis (nom + signal)
-    liste_noms_enrichis = []
+    # Construire le cache des signaux
     signaux_cache = {}
     for ticker_key, nom in actions_disponibles.items():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
-        liste_noms_enrichis.append(f"{nom} → {signal}")
 
-    # Trouver l'index de l'action sélectionnée
-    idx_selected = liste_tickers.index(st.session_state.selected_ticker)
-
-    # Radio unique pour sélectionner l'action (fonctionne nativement)
-    action_choisie = st.sidebar.radio(
-        "Action :",
-        liste_noms_enrichis,
-        index=idx_selected,
-        label_visibility="collapsed"
-    )
-
-    # Retrouver le ticker correspondant
-    idx_action = liste_noms_enrichis.index(action_choisie)
-    selected_ticker = liste_tickers[idx_action]
-    st.session_state.selected_ticker = selected_ticker
-
-    # Afficher les blocs colorés avec bordure rouge sur la sélection
+    # Afficher les blocs colorés cliquables avec bouton Streamlit
     for ticker_key, nom in actions_disponibles.items():
         bg_color, signal = signaux_cache[ticker_key]
-        is_selected = (ticker_key == selected_ticker)
-        border = "border:3px solid red;" if is_selected else ""
+        is_selected = (ticker_key == st.session_state.selected_ticker)
+
+        # Emoji de signal
+        emoji_signal = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
+
+        # Bordure rouge si sélectionné
+        border = "border:3px solid red;" if is_selected else "border:1px solid #ddd;"
+        prefix = "👉 " if is_selected else ""
+
+        # Bloc coloré (visuel)
         st.sidebar.markdown(
             f'<div style="background-color:{bg_color};{border}'
-            f'padding:3px 6px;border-radius:3px;margin-bottom:2px;font-size:11px;">'
-            f'{"👉 " if is_selected else ""}{nom} → <b>{signal}</b></div>',
+            f'padding:6px 10px;border-radius:5px;margin-bottom:0px;font-size:14px;font-weight:bold;">'
+            f'{prefix}{emoji_signal} {nom} → {signal}</div>',
             unsafe_allow_html=True
         )
+
+        # Bouton Streamlit pour capter le clic (petit, sous le bloc)
+        if st.sidebar.button(f"Sélectionner {nom}", key=f"btn_{ticker_key}", use_container_width=True):
+            st.session_state.selected_ticker = ticker_key
+            st.rerun()
+
+    selected_ticker = st.session_state.selected_ticker
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
