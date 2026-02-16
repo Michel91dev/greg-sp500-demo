@@ -259,30 +259,44 @@ def main():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
 
-    # Afficher les blocs colorés cliquables avec bouton Streamlit
-    for ticker_key, nom in actions_disponibles.items():
+    # Conteneur dédié pour les boutons d'action
+    container_actions = st.sidebar.container()
+
+    # Créer les boutons d'action cliquables dans le conteneur
+    liste_items = list(actions_disponibles.items())
+    for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
         is_selected = (ticker_key == st.session_state.selected_ticker)
-
-        # Emoji de signal
         emoji_signal = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-
-        # Bordure rouge si sélectionné
-        border = "border:3px solid red;" if is_selected else "border:1px solid #ddd;"
         prefix = "👉 " if is_selected else ""
-
-        # Bloc coloré (visuel)
-        st.sidebar.markdown(
-            f'<div style="background-color:{bg_color};{border}'
-            f'padding:6px 10px;border-radius:5px;margin-bottom:0px;font-size:14px;font-weight:bold;">'
-            f'{prefix}{emoji_signal} {nom} → {signal}</div>',
-            unsafe_allow_html=True
-        )
-
-        # Bouton Streamlit pour capter le clic (petit, sous le bloc)
-        if st.sidebar.button(f"Sélectionner {nom}", key=f"btn_{ticker_key}", use_container_width=True):
+        label = f"{prefix}{emoji_signal} {nom} → {signal}"
+        if container_actions.button(label, key=f"btn_{ticker_key}", use_container_width=True):
             st.session_state.selected_ticker = ticker_key
             st.rerun()
+
+    # CSS pour colorer chaque bouton d'action selon sa recommandation
+    # On cible les boutons dans le conteneur via nth-of-type
+    css_rules = ""
+    for i, (ticker_key, nom) in enumerate(liste_items):
+        bg_color, signal = signaux_cache[ticker_key]
+        is_selected = (ticker_key == st.session_state.selected_ticker)
+        border_css = "border: 3px solid red !important; box-shadow: 0 0 8px rgba(255,0,0,0.5) !important;" if is_selected else f"border: 1px solid {bg_color} !important;"
+        # Chaque bouton est dans un div enfant du conteneur
+        # On utilise nth-child pour cibler le bon bouton (i+1 car 1-indexed)
+        css_rules += f"""
+        div[data-testid="stVerticalBlockBorderWrapper"]:last-of-type
+        div[data-testid="stVerticalBlock"] > div:nth-child({i + 1}) button {{
+            background-color: {bg_color} !important;
+            color: black !important;
+            {border_css}
+            font-weight: bold !important;
+            font-size: 13px !important;
+            padding: 4px 8px !important;
+            margin-bottom: 2px !important;
+        }}
+        """
+
+    st.sidebar.markdown(f"<style>{css_rules}</style>", unsafe_allow_html=True)
 
     selected_ticker = st.session_state.selected_ticker
 
