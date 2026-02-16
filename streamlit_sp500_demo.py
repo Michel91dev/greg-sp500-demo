@@ -358,7 +358,7 @@ def main():
     # CSS pour resserrer l'espacement vertical de la partie principale
     st.markdown("""
     <style>
-    .block-container { padding-top: 0.3rem !important; padding-bottom: 0.3rem !important; }
+    .block-container { padding-top: 0rem !important; padding-bottom: 0.3rem !important; }
     div[data-testid="stMetric"] { padding: 0px !important; margin-bottom: 0px !important; }
     div[data-testid="stMetricValue"] { font-size: 1.3rem !important; }
     h1 { margin: 0px !important; padding: 0px !important; font-size: 1.6rem !important; line-height: 1.2 !important; }
