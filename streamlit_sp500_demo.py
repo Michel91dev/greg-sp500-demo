@@ -355,8 +355,8 @@ def main():
     div[data-testid="stAlert"] { padding: 0.2rem 0.5rem !important; margin: 0px !important; }
     div[data-testid="stAlert"] p { margin: 0px !important; font-size: 0.82rem !important; line-height: 1.3 !important; }
     div[data-testid="stCaptionContainer"] { margin: 0px !important; padding: 0px !important; }
-    div[data-testid="stElementContainer"] { margin-bottom: 0px !important; }
-    div[data-testid="stVerticalBlock"] { gap: 0px !important; }
+    div[data-testid="stElementContainer"] { margin-bottom: 0.15rem !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0.25rem !important; }
     p { margin-bottom: 0.1rem !important; }
     </style>
     """, unsafe_allow_html=True)
