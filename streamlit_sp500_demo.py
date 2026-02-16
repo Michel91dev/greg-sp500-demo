@@ -253,73 +253,42 @@ def main():
     # Sélection rapide fusionnée avec recommandations
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
-    # Construire le cache des signaux
+    # Construire les options du radio avec noms enrichis (nom + signal)
+    liste_noms_enrichis = []
     signaux_cache = {}
     for ticker_key, nom in actions_disponibles.items():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
+        emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
+        liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
 
-    liste_items = list(actions_disponibles.items())
+    # Trouver l'index de l'action sélectionnée
+    idx_selected = liste_tickers.index(st.session_state.selected_ticker)
 
-    # Labels enrichis pour le radio
-    labels_radio = []
-    for ticker_key, nom in liste_items:
-        bg_color, signal = signaux_cache[ticker_key]
-        labels_radio.append(f"{nom} → {signal}")
-
-    # Index courant
-    idx_courant = liste_tickers.index(st.session_state.selected_ticker)
-
-    # Radio natif Streamlit (cliquable à 100%)
-    choix_radio = st.sidebar.radio(
-        "Actions :",
-        labels_radio,
-        index=idx_courant,
-        key="radio_actions",
+    # Radio unique pour sélectionner l'action (fonctionne nativement)
+    action_choisie = st.sidebar.radio(
+        "Action :",
+        liste_noms_enrichis,
+        index=idx_selected,
         label_visibility="collapsed"
     )
 
-    # Mettre à jour la sélection
-    idx_choix = labels_radio.index(choix_radio)
-    selected_ticker = liste_tickers[idx_choix]
+    # Retrouver le ticker correspondant
+    idx_action = liste_noms_enrichis.index(action_choisie)
+    selected_ticker = liste_tickers[idx_action]
     st.session_state.selected_ticker = selected_ticker
 
-    # CSS pour colorer chaque option du radio selon sa recommandation
-    css_radio = "<style>\n"
-    for i, (ticker_key, nom) in enumerate(liste_items):
+    # Afficher les blocs colorés avec bordure rouge sur la sélection
+    for ticker_key, nom in actions_disponibles.items():
         bg_color, signal = signaux_cache[ticker_key]
         is_selected = (ticker_key == selected_ticker)
-        border = "border:3px solid red !important;box-shadow:0 0 6px rgba(255,0,0,0.5) !important;" if is_selected else f"border:1px solid {bg_color} !important;"
-        # Cibler le label du radio via nth-child dans le widget radio_actions
-        css_radio += f"""
-        div[data-testid="stRadio"][aria-label="Actions :"] label:nth-of-type({i + 1}) {{
-            background-color: {bg_color} !important;
-            {border}
-            border-radius: 4px !important;
-            padding: 5px 8px !important;
-            margin-bottom: 3px !important;
-            font-size: 14px !important;
-            font-weight: bold !important;
-            color: black !important;
-            display: block !important;
-        }}
-        """
-
-    # Masquer les cercles radio et serrer l'espacement
-    css_radio += """
-    div[data-testid="stRadio"][aria-label="Actions :"] label > div:first-child {
-        display: none !important;
-    }
-    div[data-testid="stRadio"][aria-label="Actions :"] label {
-        cursor: pointer !important;
-    }
-    div[data-testid="stRadio"][aria-label="Actions :"] {
-        gap: 0px !important;
-    }
-    </style>
-    """
-
-    st.sidebar.markdown(css_radio, unsafe_allow_html=True)
+        border = "border:3px solid red;" if is_selected else ""
+        st.sidebar.markdown(
+            f'<div style="background-color:{bg_color};{border}'
+            f'padding:3px 6px;border-radius:3px;margin-bottom:2px;font-size:11px;">'
+            f'{"👉 " if is_selected else ""}{nom} → <b>{signal}</b></div>',
+            unsafe_allow_html=True
+        )
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
