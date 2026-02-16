@@ -235,7 +235,20 @@ def main():
             "NET": "☁️ Cloudflare",
             "REGN": "💊 Regeneron",
             "FRE.DE": "🏥 Fresenius",
-            "LRN": "🎓 Stride Inc"
+            "LRN": "🎓 Stride Inc",
+            "PLTR": "🛡️ Palantir",
+            "ABVX": "💉 Abivax",
+            "NEE": "⚡ NextEra Energy",
+            "SAF.PA": "✈️ Safran",
+            "MSFT": "🖥️ Microsoft",
+            "AAPL": "📱 Apple",
+            "AIR": "✈️ Airbus",
+            "ASML": "🔬 ASML",
+            "META": "📘 Meta",
+            "AGI": "⛏️ Alamos Gold",
+            "DFNS": "🛡️ Defence ETF",
+            "RYAAY": "✈️ Ryanair",
+            "MU": "💾 Micron Technology"
         }
     }
 
