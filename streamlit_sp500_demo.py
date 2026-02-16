@@ -10,6 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
+import streamlit.components.v1 as components
 
 # Lire la version depuis le fichier
 def get_version():
@@ -259,30 +260,20 @@ def main():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
 
-    # Construire les blocs colorés cliquables via selectbox
+    # Blocs colorés cliquables via components.html + query params
+
     liste_items = list(actions_disponibles.items())
-    options_affichage = []
-    for ticker_key, nom in liste_items:
-        bg_color, signal = signaux_cache[ticker_key]
-        options_affichage.append(f"{nom} → {signal}")
 
-    # Trouver l'index courant
-    idx_courant = liste_tickers.index(st.session_state.selected_ticker)
+    # Lire le ticker depuis les query params si présent (clic sur un bloc)
+    qp = st.query_params
+    if "ticker" in qp:
+        ticker_from_url = qp["ticker"]
+        if ticker_from_url in liste_tickers:
+            st.session_state.selected_ticker = ticker_from_url
 
-    # Selectbox pour choisir l'action (fonctionne nativement, un seul widget)
-    choix = st.sidebar.selectbox(
-        "Choisir une action :",
-        options_affichage,
-        index=idx_courant,
-        label_visibility="collapsed"
-    )
+    selected_ticker = st.session_state.selected_ticker
 
-    # Retrouver le ticker sélectionné
-    idx_choix = options_affichage.index(choix)
-    selected_ticker = liste_tickers[idx_choix]
-    st.session_state.selected_ticker = selected_ticker
-
-    # Afficher les blocs colorés visuels (HTML pur, compact, 3px entre eux)
+    # Construire le HTML des blocs colorés cliquables
     html_blocs = ""
     for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
@@ -290,15 +281,31 @@ def main():
         border = "border:3px solid red;box-shadow:0 0 6px rgba(255,0,0,0.5);" if is_selected else f"border:1px solid {bg_color};"
         prefix = "👉 " if is_selected else ""
         html_blocs += (
-            f'<div style="background-color:{bg_color};{border}'
+            f'<div onclick="selectTicker(\'{ticker_key}\')" '
+            f'style="background-color:{bg_color};{border}'
             f'padding:5px 8px;border-radius:4px;margin-bottom:3px;'
-            f'font-size:14px;font-weight:bold;color:black;">'
+            f'font-size:14px;font-weight:bold;color:black;cursor:pointer;">'
             f'{prefix}{nom} → {signal}</div>'
         )
 
-    st.sidebar.markdown(html_blocs, unsafe_allow_html=True)
+    # Composant HTML avec JS pour naviguer avec le query param au clic
+    html_complet = f"""
+    <div style="font-family:sans-serif;">
+    {html_blocs}
+    </div>
+    <script>
+    function selectTicker(ticker) {{
+        const url = new URL(window.parent.location);
+        url.searchParams.set("ticker", ticker);
+        window.parent.location.href = url.toString();
+    }}
+    </script>
+    """
 
-    selected_ticker = st.session_state.selected_ticker
+    # Calculer la hauteur selon le nombre d'actions (35px par bloc + marge)
+    hauteur = len(liste_items) * 38 + 10
+    with st.sidebar:
+        components.html(html_complet, height=hauteur, scrolling=False)
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
