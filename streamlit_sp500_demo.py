@@ -267,9 +267,8 @@ def main():
     for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
         is_selected = (ticker_key == st.session_state.selected_ticker)
-        emoji_signal = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
         prefix = "👉 " if is_selected else ""
-        label = f"{prefix}{emoji_signal} {nom} → {signal}"
+        label = f"{prefix}{nom} → {signal}"
         if container_actions.button(label, key=f"btn_{ticker_key}", use_container_width=True):
             st.session_state.selected_ticker = ticker_key
             st.rerun()
@@ -285,6 +284,11 @@ def main():
         # On utilise nth-child pour cibler le bon bouton (i+1 car 1-indexed)
         css_rules += f"""
         div[data-testid="stVerticalBlockBorderWrapper"]:last-of-type
+        div[data-testid="stVerticalBlock"] > div:nth-child({i + 1}) {{
+            padding: 0px !important;
+            margin: 0px !important;
+        }}
+        div[data-testid="stVerticalBlockBorderWrapper"]:last-of-type
         div[data-testid="stVerticalBlock"] > div:nth-child({i + 1}) button {{
             background-color: {bg_color} !important;
             color: black !important;
@@ -292,7 +296,9 @@ def main():
             font-weight: bold !important;
             font-size: 13px !important;
             padding: 4px 8px !important;
-            margin-bottom: 2px !important;
+            margin: 1px 0px !important;
+            min-height: 32px !important;
+            height: auto !important;
         }}
         """
 
