@@ -10,7 +10,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
-import streamlit.components.v1 as components
 
 # Lire la version depuis le fichier
 def get_version():
@@ -260,52 +259,67 @@ def main():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
 
-    # Blocs colorés cliquables via components.html + query params
-
     liste_items = list(actions_disponibles.items())
 
-    # Lire le ticker depuis les query params si présent (clic sur un bloc)
-    qp = st.query_params
-    if "ticker" in qp:
-        ticker_from_url = qp["ticker"]
-        if ticker_from_url in liste_tickers:
-            st.session_state.selected_ticker = ticker_from_url
-
-    selected_ticker = st.session_state.selected_ticker
-
-    # Construire le HTML des blocs colorés cliquables
-    html_blocs = ""
+    # Labels enrichis pour le radio
+    labels_radio = []
     for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
-        is_selected = (ticker_key == selected_ticker)
-        border = "border:3px solid red;box-shadow:0 0 6px rgba(255,0,0,0.5);" if is_selected else f"border:1px solid {bg_color};"
-        prefix = "👉 " if is_selected else ""
-        html_blocs += (
-            f'<div onclick="selectTicker(\'{ticker_key}\')" '
-            f'style="background-color:{bg_color};{border}'
-            f'padding:5px 8px;border-radius:4px;margin-bottom:3px;'
-            f'font-size:14px;font-weight:bold;color:black;cursor:pointer;">'
-            f'{prefix}{nom} → {signal}</div>'
-        )
+        labels_radio.append(f"{nom} → {signal}")
 
-    # Composant HTML avec JS pour naviguer avec le query param au clic
-    html_complet = f"""
-    <div style="font-family:sans-serif;">
-    {html_blocs}
-    </div>
-    <script>
-    function selectTicker(ticker) {{
-        const url = new URL(window.parent.location);
-        url.searchParams.set("ticker", ticker);
-        window.parent.location.href = url.toString();
-    }}
-    </script>
+    # Index courant
+    idx_courant = liste_tickers.index(st.session_state.selected_ticker)
+
+    # Radio natif Streamlit (cliquable à 100%)
+    choix_radio = st.sidebar.radio(
+        "Actions :",
+        labels_radio,
+        index=idx_courant,
+        key="radio_actions",
+        label_visibility="collapsed"
+    )
+
+    # Mettre à jour la sélection
+    idx_choix = labels_radio.index(choix_radio)
+    selected_ticker = liste_tickers[idx_choix]
+    st.session_state.selected_ticker = selected_ticker
+
+    # CSS pour colorer chaque option du radio selon sa recommandation
+    css_radio = "<style>\n"
+    for i, (ticker_key, nom) in enumerate(liste_items):
+        bg_color, signal = signaux_cache[ticker_key]
+        is_selected = (ticker_key == selected_ticker)
+        border = "border:3px solid red !important;box-shadow:0 0 6px rgba(255,0,0,0.5) !important;" if is_selected else f"border:1px solid {bg_color} !important;"
+        # Cibler le label du radio via nth-child dans le widget radio_actions
+        css_radio += f"""
+        div[data-testid="stRadio"][aria-label="Actions :"] label:nth-of-type({i + 1}) {{
+            background-color: {bg_color} !important;
+            {border}
+            border-radius: 4px !important;
+            padding: 5px 8px !important;
+            margin-bottom: 3px !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
+            color: black !important;
+            display: block !important;
+        }}
+        """
+
+    # Masquer les cercles radio et serrer l'espacement
+    css_radio += """
+    div[data-testid="stRadio"][aria-label="Actions :"] label > div:first-child {
+        display: none !important;
+    }
+    div[data-testid="stRadio"][aria-label="Actions :"] label {
+        cursor: pointer !important;
+    }
+    div[data-testid="stRadio"][aria-label="Actions :"] {
+        gap: 0px !important;
+    }
+    </style>
     """
 
-    # Calculer la hauteur selon le nombre d'actions (35px par bloc + marge)
-    hauteur = len(liste_items) * 38 + 10
-    with st.sidebar:
-        components.html(html_complet, height=hauteur, scrolling=False)
+    st.sidebar.markdown(css_radio, unsafe_allow_html=True)
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
