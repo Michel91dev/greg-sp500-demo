@@ -259,50 +259,44 @@ def main():
         bg_color, signal = get_recommendation_signal(ticker_key)
         signaux_cache[ticker_key] = (bg_color, signal)
 
-    # Conteneur dédié pour les boutons d'action
-    container_actions = st.sidebar.container()
-
-    # Créer les boutons d'action cliquables dans le conteneur
+    # Construire les blocs colorés cliquables via selectbox
     liste_items = list(actions_disponibles.items())
+    options_affichage = []
     for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
-        is_selected = (ticker_key == st.session_state.selected_ticker)
-        prefix = "👉 " if is_selected else ""
-        label = f"{prefix}{nom} → {signal}"
-        if container_actions.button(label, key=f"btn_{ticker_key}", use_container_width=True):
-            st.session_state.selected_ticker = ticker_key
-            st.rerun()
+        options_affichage.append(f"{nom} → {signal}")
 
-    # CSS pour colorer chaque bouton d'action selon sa recommandation
-    # On cible les boutons dans le conteneur via nth-of-type
-    css_rules = ""
-    for i, (ticker_key, nom) in enumerate(liste_items):
+    # Trouver l'index courant
+    idx_courant = liste_tickers.index(st.session_state.selected_ticker)
+
+    # Selectbox pour choisir l'action (fonctionne nativement, un seul widget)
+    choix = st.sidebar.selectbox(
+        "Choisir une action :",
+        options_affichage,
+        index=idx_courant,
+        label_visibility="collapsed"
+    )
+
+    # Retrouver le ticker sélectionné
+    idx_choix = options_affichage.index(choix)
+    selected_ticker = liste_tickers[idx_choix]
+    st.session_state.selected_ticker = selected_ticker
+
+    # Afficher les blocs colorés visuels (HTML pur, compact, 3px entre eux)
+    html_blocs = ""
+    for ticker_key, nom in liste_items:
         bg_color, signal = signaux_cache[ticker_key]
-        is_selected = (ticker_key == st.session_state.selected_ticker)
-        border_css = "border: 3px solid red !important; box-shadow: 0 0 8px rgba(255,0,0,0.5) !important;" if is_selected else f"border: 1px solid {bg_color} !important;"
-        # Chaque bouton est dans un div enfant du conteneur
-        # On utilise nth-child pour cibler le bon bouton (i+1 car 1-indexed)
-        css_rules += f"""
-        div[data-testid="stVerticalBlockBorderWrapper"]:last-of-type
-        div[data-testid="stVerticalBlock"] > div:nth-child({i + 1}) {{
-            padding: 0px !important;
-            margin: 0px !important;
-        }}
-        div[data-testid="stVerticalBlockBorderWrapper"]:last-of-type
-        div[data-testid="stVerticalBlock"] > div:nth-child({i + 1}) button {{
-            background-color: {bg_color} !important;
-            color: black !important;
-            {border_css}
-            font-weight: bold !important;
-            font-size: 13px !important;
-            padding: 4px 8px !important;
-            margin: 1px 0px !important;
-            min-height: 32px !important;
-            height: auto !important;
-        }}
-        """
+        is_selected = (ticker_key == selected_ticker)
+        border = "border:3px solid red;box-shadow:0 0 6px rgba(255,0,0,0.5);" if is_selected else f"border:1px solid {bg_color};"
+        prefix = "👉 " if is_selected else ""
+        html_blocs += (
+            f'<div style="background-color:{bg_color};{border}'
+            f'padding:5px 8px;border-radius:4px;margin-bottom:3px;'
+            f'font-size:14px;font-weight:bold;color:black;">'
+            f'{prefix}{nom} → {signal}</div>'
+        )
 
-    st.sidebar.markdown(f"<style>{css_rules}</style>", unsafe_allow_html=True)
+    st.sidebar.markdown(html_blocs, unsafe_allow_html=True)
 
     selected_ticker = st.session_state.selected_ticker
 
