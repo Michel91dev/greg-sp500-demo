@@ -161,7 +161,7 @@ def main():
     version = get_version()
     docs = get_indicator_docs()
 
-    st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
+    st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide", initial_sidebar_state="collapsed")
 
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
@@ -366,6 +366,10 @@ def main():
 div[data-testid="stVerticalBlock"] > div:first-child { margin-top: 0rem !important; padding-top: 0rem !important; }
 .stApp > div:first-child { padding-top: 0rem !important; margin-top: 0rem !important; }
 header { display: none !important; }
+    /* Sur mobile, réafficher le header pour le bouton sidebar */
+    @media (max-width: 768px) {
+        header { display: block !important; height: auto !important; }
+    }
 div[data-testid="element-container"] { margin: 0 !important; }
 div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important; }
     div[data-testid="stMetric"] { padding: 0px !important; margin-bottom: 0px !important; }
@@ -381,23 +385,8 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     div[data-testid="stVerticalBlock"] { gap: 0.25rem !important; }
     p { margin-bottom: 0.1rem !important; }
 
-    /* Mobile : sidebar fermée par défaut, bouton > bien visible */
+    /* Mobile : texte adapté + padding réduit */
     @media (max-width: 768px) {
-        section[data-testid="stSidebar"] { display: none !important; }
-        button[data-testid="collapsedControl"] {
-            display: block !important;
-            background-color: #4682B4 !important;
-            color: white !important;
-            border-radius: 50% !important;
-            width: 40px !important;
-            height: 40px !important;
-            font-size: 22px !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-            position: fixed !important;
-            top: 8px !important;
-            left: 8px !important;
-            z-index: 9999 !important;
-        }
         h1 { font-size: 1.2rem !important; }
         h2 { font-size: 1.0rem !important; }
         div[data-testid="stMetricValue"] { font-size: 1.0rem !important; }
