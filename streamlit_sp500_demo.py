@@ -381,27 +381,27 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     div[data-testid="stVerticalBlock"] { gap: 0.25rem !important; }
     p { margin-bottom: 0.1rem !important; }
 
-    /* CSS pour mobile - rendre la sidebar accessible */
+    /* Mobile : sidebar fermée par défaut, bouton > bien visible */
     @media (max-width: 768px) {
-        /* Rendre le bouton natif Streamlit d'ouverture sidebar plus visible */
+        section[data-testid="stSidebar"] { display: none !important; }
         button[data-testid="collapsedControl"] {
+            display: block !important;
             background-color: #4682B4 !important;
             color: white !important;
-            border-radius: 8px !important;
-            padding: 8px 12px !important;
-            font-size: 20px !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            font-size: 22px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
-            z-index: 999 !important;
+            position: fixed !important;
+            top: 8px !important;
+            left: 8px !important;
+            z-index: 9999 !important;
         }
-        /* Sidebar pleine largeur sur mobile */
-        section[data-testid="stSidebar"] {
-            width: 85vw !important;
-            min-width: 85vw !important;
-        }
-        /* Réduire les tailles de texte sur mobile */
         h1 { font-size: 1.2rem !important; }
         h2 { font-size: 1.0rem !important; }
         div[data-testid="stMetricValue"] { font-size: 1.0rem !important; }
+        .block-container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
     }
     </style>
     """, unsafe_allow_html=True)
