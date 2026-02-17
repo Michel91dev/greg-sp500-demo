@@ -355,7 +355,7 @@ def main():
         st.sidebar.markdown(docs[indicator_choice])
         st.sidebar.markdown("*💡 Astuce : Lisez la documentation pour comprendre comment utiliser chaque indicateur !*")
 
-    # CSS pour resserrer l'espacement vertical de la partie principale
+    # CSS pour resserrer l'espacement vertical de la partie principale ET rendre la sidebar accessible sur mobile
     st.markdown("""
     <style>
     body { margin: 0 !important; padding: 0 !important; }
@@ -380,7 +380,116 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     div[data-testid="stElementContainer"] { margin-bottom: 0.15rem !important; }
     div[data-testid="stVerticalBlock"] { gap: 0.25rem !important; }
     p { margin-bottom: 0.1rem !important; }
+
+    /* CSS pour mobile - rendre la sidebar accessible */
+    @media (max-width: 768px) {
+        .css-1d391kg {  /* Sidebar sur mobile */
+            width: 100% !important;
+            max-width: 100% !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            height: 100vh !important;
+            z-index: 999 !important;
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .css-1d391kg.open {  /* Sidebar ouverte */
+            transform: translateX(0) !important;
+        }
+
+        /* Bouton hamburger */
+        .hamburger-btn {
+            position: fixed !important;
+            top: 10px !important;
+            left: 10px !important;
+            z-index: 1000 !important;
+            background: #4682B4 !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 12px !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            font-size: 18px !important;
+            display: block !important;
+        }
+
+        /* Overlay pour fermer la sidebar */
+        .sidebar-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background: rgba(0,0,0,0.5) !important;
+            z-index: 998 !important;
+            display: none !important;
+        }
+
+        .sidebar-overlay.show {
+            display: block !important;
+        }
+    }
+
+    /* Cacher le hamburger sur desktop */
+    @media (min-width: 769px) {
+        .hamburger-btn, .sidebar-overlay {
+            display: none !important;
+        }
+    }
     </style>
+
+    <!-- JavaScript pour le fonctionnement du hamburger -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Créer le bouton hamburger
+        const hamburger = document.createElement('button');
+        hamburger.className = 'hamburger-btn';
+        hamburger.innerHTML = '☰';
+        hamburger.onclick = toggleSidebar;
+        document.body.appendChild(hamburger);
+
+        // Créer l'overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        overlay.onclick = closeSidebar;
+        document.body.appendChild(overlay);
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.css-1d391kg');
+            const overlay_el = document.querySelector('.sidebar-overlay');
+
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                sidebar.classList.add('open');
+                overlay_el.classList.add('show');
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.querySelector('.css-1d391kg');
+            const overlay_el = document.querySelector('.sidebar-overlay');
+
+            sidebar.classList.remove('open');
+            overlay_el.classList.remove('show');
+        }
+
+        // Détecter si on est sur mobile
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
+        // Adapter l'affichage au chargement
+        if (isMobile()) {
+            // S'assurer que la sidebar est fermée au chargement sur mobile
+            setTimeout(() => {
+                closeSidebar();
+            }, 100);
+        }
+    });
+    </script>
     """, unsafe_allow_html=True)
 
     st.title(f"📈 {nom_action}")
@@ -401,8 +510,26 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
             st.error(f"Erreur lors du chargement: {e}")
             return
 
-    # Métriques principales
-    col1, col2, col3, col4 = st.columns(4)
+    # Récupérer les informations fondamentales de l'entreprise
+    try:
+        info = ticker.info
+        market_cap = info.get('marketCap', None)
+        if market_cap:
+            if market_cap >= 1e12:
+                market_cap_str = f"{market_cap/1e12:.1f} T$"
+            elif market_cap >= 1e9:
+                market_cap_str = f"{market_cap/1e9:.1f} G$"
+            elif market_cap >= 1e6:
+                market_cap_str = f"{market_cap/1e6:.1f} M$"
+            else:
+                market_cap_str = f"{market_cap:.0f} $"
+        else:
+            market_cap_str = "N/A"
+    except:
+        market_cap_str = "N/A"
+
+    # Métriques principales (5 colonnes pour inclure la capitalisation)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     prix_actuel = data['Close'].iloc[-1]
     prix_precedent = data['Close'].iloc[-2] if len(data) > 1 else prix_actuel
@@ -412,6 +539,7 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     col2.metric("Variation", f"{variation:+.2f}%", delta=f"{variation:+.2f}%")
     col3.metric("Plus Haut", f"{data['High'].max():.2f} $")
     col4.metric("Plus Bas", f"{data['Low'].min():.2f} $")
+    col5.metric("Capitalisation", market_cap_str)
 
     # Recommandation de trading avec croisements (en premier)
     st.subheader("🎯 Recommandation de trading")
