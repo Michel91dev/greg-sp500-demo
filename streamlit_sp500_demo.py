@@ -383,113 +383,27 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
 
     /* CSS pour mobile - rendre la sidebar accessible */
     @media (max-width: 768px) {
-        .css-1d391kg {  /* Sidebar sur mobile */
-            width: 100% !important;
-            max-width: 100% !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            height: 100vh !important;
-            z-index: 999 !important;
-            transform: translateX(-100%) !important;
-            transition: transform 0.3s ease !important;
-        }
-
-        .css-1d391kg.open {  /* Sidebar ouverte */
-            transform: translateX(0) !important;
-        }
-
-        /* Bouton hamburger */
-        .hamburger-btn {
-            position: fixed !important;
-            top: 10px !important;
-            left: 10px !important;
-            z-index: 1000 !important;
-            background: #4682B4 !important;
+        /* Rendre le bouton natif Streamlit d'ouverture sidebar plus visible */
+        button[data-testid="collapsedControl"] {
+            background-color: #4682B4 !important;
             color: white !important;
-            border: none !important;
+            border-radius: 8px !important;
             padding: 8px 12px !important;
-            border-radius: 4px !important;
-            cursor: pointer !important;
-            font-size: 18px !important;
-            display: block !important;
+            font-size: 20px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+            z-index: 999 !important;
         }
-
-        /* Overlay pour fermer la sidebar */
-        .sidebar-overlay {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background: rgba(0,0,0,0.5) !important;
-            z-index: 998 !important;
-            display: none !important;
+        /* Sidebar pleine largeur sur mobile */
+        section[data-testid="stSidebar"] {
+            width: 85vw !important;
+            min-width: 85vw !important;
         }
-
-        .sidebar-overlay.show {
-            display: block !important;
-        }
-    }
-
-    /* Cacher le hamburger sur desktop */
-    @media (min-width: 769px) {
-        .hamburger-btn, .sidebar-overlay {
-            display: none !important;
-        }
+        /* Réduire les tailles de texte sur mobile */
+        h1 { font-size: 1.2rem !important; }
+        h2 { font-size: 1.0rem !important; }
+        div[data-testid="stMetricValue"] { font-size: 1.0rem !important; }
     }
     </style>
-
-    <!-- JavaScript pour le fonctionnement du hamburger -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Créer le bouton hamburger
-        const hamburger = document.createElement('button');
-        hamburger.className = 'hamburger-btn';
-        hamburger.innerHTML = '☰';
-        hamburger.onclick = toggleSidebar;
-        document.body.appendChild(hamburger);
-
-        // Créer l'overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        overlay.onclick = closeSidebar;
-        document.body.appendChild(overlay);
-
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.css-1d391kg');
-            const overlay_el = document.querySelector('.sidebar-overlay');
-
-            if (sidebar.classList.contains('open')) {
-                closeSidebar();
-            } else {
-                sidebar.classList.add('open');
-                overlay_el.classList.add('show');
-            }
-        }
-
-        function closeSidebar() {
-            const sidebar = document.querySelector('.css-1d391kg');
-            const overlay_el = document.querySelector('.sidebar-overlay');
-
-            sidebar.classList.remove('open');
-            overlay_el.classList.remove('show');
-        }
-
-        // Détecter si on est sur mobile
-        function isMobile() {
-            return window.innerWidth <= 768;
-        }
-
-        // Adapter l'affichage au chargement
-        if (isMobile()) {
-            // S'assurer que la sidebar est fermée au chargement sur mobile
-            setTimeout(() => {
-                closeSidebar();
-            }, 100);
-        }
-    });
-    </script>
     """, unsafe_allow_html=True)
 
     st.title(f"📈 {nom_action}")
