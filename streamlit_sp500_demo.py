@@ -326,33 +326,60 @@ def main():
             options_par_categorie[categorie] = []
         options_par_categorie[categorie].append((ticker_key, option_text))
 
-    # Construire la liste finale avec séparateurs
-    liste_noms_enrichis = []
-    for categorie in ["PEA", "TITRES"]:
-        if categorie in options_par_categorie:
-            liste_noms_enrichis.append(f"--- 📊 {categorie} ---")
-            for ticker_key, option_text in options_par_categorie[categorie]:
-                liste_noms_enrichis.append(option_text)
-
-    # Radio pour sélectionner l'action (key= pour éviter le double-clic)
-    action_choisie = st.sidebar.radio(
-        "Action :",
-        liste_noms_enrichis,
-        key="action_radio",
-        label_visibility="collapsed"
-    )
-
-    # Retrouver le ticker correspondant (ignorer les séparateurs)
+    # Afficher les catégories avec radios séparés et trait bleu
     selected_ticker = None
-    for ticker_key, nom in actions_disponibles.items():
-        signal = signaux_cache.get(ticker_key, "Neutre")
-        emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-        option_text = f"{emoji_feu} {nom} → {signal}"
-        if option_text == action_choisie:
-            selected_ticker = ticker_key
-            break
 
-    # Si pas trouvé (séparateur cliqué), utiliser le premier ticker
+    # Catégorie PEA
+    if "PEA" in options_par_categorie:
+        st.sidebar.markdown(
+            f'<div style="text-align:center;font-weight:bold;color:#4682B4;margin:1rem 0;">📊 PEA</div>',
+            unsafe_allow_html=True
+        )
+        st.sidebar.markdown(
+            '<div style="height:2px;background:#4682B4;margin:0.5rem 0;"></div>',
+            unsafe_allow_html=True
+        )
+
+        options_pea = [opt_text for _, opt_text in options_par_categorie["PEA"]]
+        if options_pea:
+            action_pea = st.sidebar.radio(
+                "PEA :",
+                options_pea,
+                key="action_pea",
+                label_visibility="collapsed"
+            )
+            # Récupérer le ticker sélectionné dans PEA
+            for ticker_key, option_text in options_par_categorie["PEA"]:
+                if option_text == action_pea:
+                    selected_ticker = ticker_key
+                    break
+
+    # Catégorie TITRES
+    if "TITRES" in options_par_categorie:
+        st.sidebar.markdown(
+            f'<div style="text-align:center;font-weight:bold;color:#4682B4;margin:1rem 0;">📊 TITRES</div>',
+            unsafe_allow_html=True
+        )
+        st.sidebar.markdown(
+            '<div style="height:2px;background:#4682B4;margin:0.5rem 0;"></div>',
+            unsafe_allow_html=True
+        )
+
+        options_titres = [opt_text for _, opt_text in options_par_categorie["TITRES"]]
+        if options_titres:
+            action_titres = st.sidebar.radio(
+                "TITRES :",
+                options_titres,
+                key="action_titres",
+                label_visibility="collapsed"
+            )
+            # Récupérer le ticker sélectionné dans TITRES
+            for ticker_key, option_text in options_par_categorie["TITRES"]:
+                if option_text == action_titres:
+                    selected_ticker = ticker_key
+                    break
+
+    # Si aucune sélection, utiliser le premier ticker disponible
     if selected_ticker is None:
         selected_ticker = liste_tickers[0]
 
