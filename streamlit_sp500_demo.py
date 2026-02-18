@@ -162,7 +162,7 @@ def main():
     version = get_version()
     docs = get_indicator_docs()
 
-    st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide", initial_sidebar_state="collapsed")
+    st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
 
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
@@ -205,10 +205,16 @@ def main():
             "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
         },
         "Romain": {
-            "^GSPC": "📈 S&P 500",
             "FGR.PA": "🏗️ Eiffage",
-            "CAN.PA": "📺 Canal+",
-            "SOI.PA": "⚡ Soitec"
+            "SOI.PA": "⚡ Soitec",
+            "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
+            "PCEU.PA": "�🇺 Amundi PEA MSCI Europe ETF",
+            "STMPA.PA": "� STMicroelectronics",
+            "DSY.PA": "💻 Dassault Systèmes",
+            "DEEZR.PA": "🎵 Deezer",
+            "FORSE.PA": "🔋 Forsee Power",
+            "WPEA.PA": "🌍 iShares MSCI World PEA ETF",
+            "LSG.OL": "🐟 Lerøy Seafood"
         },
         "Roger": {
             "^GSPC": "📈 S&P 500",
@@ -355,11 +361,7 @@ def main():
 .main .block-container { padding-top: 0rem !important; }
 div[data-testid="stVerticalBlock"] > div:first-child { margin-top: 0rem !important; padding-top: 0rem !important; }
 .stApp > div:first-child { padding-top: 0rem !important; margin-top: 0rem !important; }
-header { display: none !important; }
-    /* Sur mobile, réafficher le header pour le bouton sidebar */
-    @media (max-width: 768px) {
-        header { display: block !important; height: auto !important; }
-    }
+header[data-testid="stHeader"] { background: transparent !important; height: 2.5rem !important; }
 div[data-testid="element-container"] { margin: 0 !important; }
 div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important; }
     div[data-testid="stMetric"] { padding: 0px !important; margin-bottom: 0px !important; }
