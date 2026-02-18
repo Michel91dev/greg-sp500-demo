@@ -163,38 +163,10 @@ def main():
 
     st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide", initial_sidebar_state="collapsed")
 
-    # Splashscreen au premier lancement
-    if 'donnees_chargees' not in st.session_state:
-        splash = st.empty()
-        splash.markdown(
-            f"""
-            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
-            height:80vh;text-align:center;">
-            <div style="font-size:5rem;margin-bottom:1rem;">📈</div>
-            <h1 style="font-size:2rem !important;margin-bottom:0.5rem !important;">Analyse Actions</h1>
-            <p style="color:#888;font-size:1.2rem;">Chargement des données en cours...</p>
-            <p style="color:#aaa;font-size:0.9rem;">v{version}</p>
-            <div style="margin-top:1rem;">
-            <div style="width:50px;height:50px;border:4px solid #ddd;border-top:4px solid #4682B4;
-            border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>
-            </div>
-            </div>
-            <style>@keyframes spin {{ 0% {{ transform:rotate(0deg); }} 100% {{ transform:rotate(360deg); }} }}</style>
-            """,
-            unsafe_allow_html=True
-        )
-        st.session_state.splash_placeholder = splash
-
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
     st.sidebar.markdown(f"**Version : {version}**")
-
-    # Sélection de l'utilisateur
-    if 'utilisateur' not in st.session_state:
-        st.session_state.utilisateur = "Michel"
-    if 'selected_ticker' not in st.session_state:
-        st.session_state.selected_ticker = "^GSPC"
 
     couleurs_utilisateur = {"Michel": "#4682B4", "Romain": "#9370DB", "Roger": "#DAA520"}
 
@@ -202,11 +174,10 @@ def main():
     utilisateur = st.sidebar.radio(
         "Choisir :",
         ["Michel", "Romain", "Roger"],
-        index=["Michel", "Romain", "Roger"].index(st.session_state.utilisateur),
+        key="utilisateur",
         horizontal=True,
         label_visibility="collapsed"
     )
-    st.session_state.utilisateur = utilisateur
 
     # Bandeau utilisateur actif
     st.sidebar.markdown(
@@ -277,10 +248,7 @@ def main():
     # Actions disponibles pour l'utilisateur courant
     actions_disponibles = actions_par_utilisateur[utilisateur]
 
-    # Si le ticker sélectionné n'est pas dans la liste, reset
     liste_tickers = list(actions_disponibles.keys())
-    if st.session_state.selected_ticker not in liste_tickers:
-        st.session_state.selected_ticker = liste_tickers[0]
 
     # Fonction pour déterminer la recommandation (cache 15 min pour éviter lenteur)
     @st.cache_data(ttl=900)
@@ -308,35 +276,27 @@ def main():
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
     # Construire les options du radio avec noms enrichis (nom + signal)
-    liste_noms_enrichis = []
-    signaux_cache = {}
-    for ticker_key, nom in actions_disponibles.items():
-        bg_color, signal = get_recommendation_signal(ticker_key)
-        signaux_cache[ticker_key] = (bg_color, signal)
-        emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-        liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
+    with st.status("📈 Chargement des signaux...", expanded=False) as status_bar:
+        liste_noms_enrichis = []
+        signaux_cache = {}
+        for ticker_key, nom in actions_disponibles.items():
+            bg_color, signal = get_recommendation_signal(ticker_key)
+            signaux_cache[ticker_key] = (bg_color, signal)
+            emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
+            liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
+        status_bar.update(label="✅ Signaux chargés", state="complete")
 
-    # Supprimer le splashscreen après chargement
-    if 'splash_placeholder' in st.session_state:
-        st.session_state.splash_placeholder.empty()
-        del st.session_state.splash_placeholder
-        st.session_state.donnees_chargees = True
-
-    # Trouver l'index de l'action sélectionnée
-    idx_selected = liste_tickers.index(st.session_state.selected_ticker)
-
-    # Radio unique pour sélectionner l'action (fonctionne nativement)
+    # Radio pour sélectionner l'action (key= pour éviter le double-clic)
     action_choisie = st.sidebar.radio(
         "Action :",
         liste_noms_enrichis,
-        index=idx_selected,
+        key="action_radio",
         label_visibility="collapsed"
     )
 
     # Retrouver le ticker correspondant
     idx_action = liste_noms_enrichis.index(action_choisie)
     selected_ticker = liste_tickers[idx_action]
-    st.session_state.selected_ticker = selected_ticker
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
