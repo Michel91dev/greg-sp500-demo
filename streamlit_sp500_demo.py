@@ -214,7 +214,14 @@ def main():
             "DEEZR.PA": "🎵 Deezer",
             "FORSE.PA": "🔋 Forsee Power",
             "WPEA.PA": "🌍 iShares MSCI World PEA ETF",
-            "LSG.OL": "🐟 Lerøy Seafood"
+            "LSG.OL": "🐟 Lerøy Seafood",
+            "BAYN.DE": "💊 Bayer",
+            "C50.PA": "🇪🇺 Amundi EURO STOXX 50 ETF",
+            "PAASI.PA": "🌏 Amundi PEA Asie Émergente ETF",
+            "VIE.PA": "♻️ Veolia Environnement",
+            "CHIP.PA": "🔬 Amundi Semiconductors ETF",
+            "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
+            "SATS": "🛰️ EchoStar"
         },
         "Roger": {
             "^GSPC": "📈 S&P 500",
@@ -362,6 +369,30 @@ def main():
 div[data-testid="stVerticalBlock"] > div:first-child { margin-top: 0rem !important; padding-top: 0rem !important; }
 .stApp > div:first-child { padding-top: 0rem !important; margin-top: 0rem !important; }
 header[data-testid="stHeader"] { background: transparent !important; height: 2.5rem !important; }
+    /* Bouton chevrons sidebar : rouge, bien visible, style bouton */
+    button[data-testid="collapsedControl"],
+    div[data-testid="stSidebarCollapsedControl"] button {
+        background-color: #DC3545 !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 6px 10px !important;
+        font-size: 1.2rem !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+        opacity: 1 !important;
+    }
+    button[data-testid="collapsedControl"]:hover,
+    div[data-testid="stSidebarCollapsedControl"] button:hover {
+        background-color: #B02A37 !important;
+    }
+    /* Chevron de fermeture dans la sidebar aussi en rouge */
+    section[data-testid="stSidebar"] button[data-testid="stSidebarNavCollapseButton"],
+    section[data-testid="stSidebar"] button[aria-label="Close"] {
+        background-color: #DC3545 !important;
+        color: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+    }
 div[data-testid="element-container"] { margin: 0 !important; }
 div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important; }
     div[data-testid="stMetric"] { padding: 0px !important; margin-bottom: 0px !important; }
