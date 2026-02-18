@@ -275,35 +275,8 @@ def main():
     actions_par_utilisateur = {
         "Michel": {
             "PEA": {
-                "MC.PA": "🥩 LVMH",
-                "OR.PA": "💎 L'Oréal",
-                "AI.PA": "🤖 Air Liquide",
-                "SAN.PA": "💊 Sanofi",
-                "BNP.PA": "🏦 BNP Paribas",
-                "STMPA.PA": "🔧 STMicroelectronics",
-                "SU.PA": "🚗 Stellantis",
-                "RMS.PA": "🛡️ Hermès",
-                "RI.PA": "🥤 Pernod Ricard",
-                "CA.PA": "🚗 Carrefour",
-                "KER.PA": "🧴 Kering",
-                "VIE.PA": "♻️ Veolia Environnement",
-                "EN.PA": "⚡ Engie",
-                "WLN.PA": "🧼 Worldline",
-                "ML.PA": "🏗️ Compagnie Immobilière Phosp",
-                "TEF.PA": "📺 TDF",
-                "TTE.PA": "⛽ TotalEnergies",
-                "SOGO.PA": "🍷 Société des Bains de Mer",
-                "HO.PA": "🏨 Thales",
-                "BN.PA": "🏢 Danone",
-                "LR.PA": "🏗️ Legrand",
-                "CGG.PA": "🛰️ CGG",
-                "AIR.PA": "✈️ Airbus",
-                "DSY.PA": "💻 Dassault Systèmes",
-                "ALO.PA": "📺 Alstom",
-                "MTX.PA": "🏗️ Matex",
-                "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
-                "PCEU.PA": "🇪🇺 Amundi PEA MSCI Europe ETF",
-                "WPEA.PA": "🌍 iShares MSCI World PEA ETF"
+                "^GSPC": "� S&P 500",
+                "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
             },
             "TITRES": {
                 "SATS": "🛰️ EchoStar",
