@@ -188,7 +188,68 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Actions par utilisateur avec catégories PEA/TITRES
+    # ISIN des actions pour affichage optionnel
+    isin_actions = {
+        "^GSPC": "ISIN inconnu",
+        "SATS": "US2787681061",
+        "DBX": "US2574671090",
+        "COIN": "US1911021031",
+        "PYPL": "US70450Y1038",
+        "ZM": "US98156N1067",
+        "MSFT": "US5949181044",
+        "AAPL": "US0378331005",
+        "TSLA": "US90384T1077",
+        "NFLX": "US6311021038",
+        "AMZN": "US0231351067",
+        "FGR.PA": "FR0000035093",
+        "SOI.PA": "FR0000121663",
+        "PSP5.PA": "FR0011871128",
+        "PCEU.PA": "FR0013412038",
+        "STMPA.PA": "FR0000124141",
+        "DSY.PA": "FR0000124141",
+        "DEEZR.PA": "FR001400AYG6",
+        "FORSE.PA": "FR0014005SB3",
+        "LSG.OL": "NO0003096208",
+        "BAYN.DE": "DE000BAY0017",
+        "C50.PA": "LU1681047236",
+        "PAASI.PA": "FR0013412012",
+        "VIE.PA": "FR0000124141",
+        "CHIP.PA": "LU1900066033",
+        "PAEEM.PA": "FR0013412020",
+        "AM.PA": "FR0014004L86",
+        "WPEA.PA": "IE0002XZSHO1",
+        "SAF.PA": "FR0000120274",
+        "AIR": "FR0000113220",
+        "ASML": "NL0000285116",
+        "NEE": "US6523941035",
+        "DFNS": "LU1681047236",
+        "RYAAY": "IE00BYSNTY28",
+        "TSM": "TW0002365886",
+        "NVDA": "US67066G1040",
+        "STX": "US78463X1075",
+        "GOOGL": "US02079K3059",
+        "AIBD": "LU1681047236",
+        "CCJ": "CA1368951081",
+        "AVGO": "US109378X1051",
+        "VST": "US91844X1088",
+        "V": "US92826C8394",
+        "AMD": "US0079031078",
+        "ATLX": "US04785V1016",
+        "PDN.AX": "AU000000PDN6",
+        "RHM.DE": "DE0007030009",
+        "NET": "US64106L1061",
+        "REGN": "US75886B1075",
+        "FRE.DE": "DE0005785604",
+        "LRN": "US5366541060",
+        "PLTR": "US69745J1060",
+        "ABVX": "FR0014003TT8",
+        "META": "US30303M1027",
+        "AGI": "CA02107B1076",
+        "MU": "US5951121038",
+        "PANX.PA": "FR0014003TT8"
+    }
+
+    # Actions par utilisateur avec catégories PEA/TITRES (corrigées)
     actions_par_utilisateur = {
         "Michel": {
             "PEA": {
@@ -213,7 +274,7 @@ def main():
                 "FGR.PA": "🏗️ Eiffage",
                 "SOI.PA": "⚡ Soitec",
                 "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
-                "PCEU.PA": "�� Amundi PEA MSCI Europe ETF",
+                "PCEU.PA": "🇪🇺 Amundi PEA MSCI Europe ETF",
                 "STMPA.PA": "🔧 STMicroelectronics",
                 "DSY.PA": "💻 Dassault Systèmes",
                 "WPEA.PA": "🌍 iShares MSCI World PEA ETF",
@@ -222,13 +283,13 @@ def main():
                 "VIE.PA": "♻️ Veolia Environnement",
                 "CHIP.PA": "🔬 Amundi Semiconductors ETF",
                 "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
-                "AM.PA": "✈️ Dassault Aviation"
+                "AM.PA": "✈️ Dassault Aviation",
+                "BAYN.DE": "💊 Bayer"
             },
             "TITRES": {
                 "DEEZR.PA": "🎵 Deezer",
                 "FORSE.PA": "🔋 Forsee Power",
                 "LSG.OL": "🐟 Lerøy Seafood",
-                "BAYN.DE": "💊 Bayer",
                 "SATS": "🛰️ EchoStar"
             }
         },
@@ -240,7 +301,8 @@ def main():
                 "ASML": "🔬 ASML",
                 "NEE": "⚡ NextEra Energy",
                 "DFNS": "🛡️ Defence ETF",
-                "RYAAY": "✈️ Ryanair"
+                "RYAAY": "✈️ Ryanair",
+                "BAYN.DE": "💊 Bayer"
             },
             "TITRES": {
                 "SATS": "🛰️ EchoStar",
@@ -311,6 +373,9 @@ def main():
     # Sélection rapide fusionnée avec recommandations
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
+    # Checkbox pour afficher les ISIN
+    afficher_isin = st.sidebar.checkbox("🔍 Afficher les ISIN", key="afficher_isin")
+
     # Charger tous les signaux en parallèle (cache 15 min)
     signaux_cache = get_all_signals(tuple(liste_tickers))
 
@@ -320,7 +385,14 @@ def main():
         categorie = actions_categories[ticker_key]
         signal = signaux_cache.get(ticker_key, "Neutre")
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-        option_text = f"{emoji_feu} {nom} → {signal}"
+
+        # Ajouter l'ISIN si la checkbox est cochée
+        isin_text = ""
+        if afficher_isin:
+            isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
+            isin_text = f" | {isin_val}"
+
+        option_text = f"{emoji_feu} {nom} → {signal}{isin_text}"
 
         if categorie not in options_par_categorie:
             options_par_categorie[categorie] = []
