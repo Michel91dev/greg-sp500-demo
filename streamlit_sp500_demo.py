@@ -221,7 +221,8 @@ def main():
             "VIE.PA": "♻️ Veolia Environnement",
             "CHIP.PA": "🔬 Amundi Semiconductors ETF",
             "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
-            "SATS": "🛰️ EchoStar"
+            "SATS": "🛰️ EchoStar",
+            "AM.PA": "✈️ Dassault Aviation"
         },
         "Roger": {
             "^GSPC": "📈 S&P 500",
