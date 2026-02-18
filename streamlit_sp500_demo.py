@@ -188,80 +188,98 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Actions par utilisateur
+    # Actions par utilisateur avec catégories PEA/TITRES
     actions_par_utilisateur = {
         "Michel": {
-            "^GSPC": "📈 S&P 500",
-            "SATS": "🛰️ EchoStar",
-            "DBX": "☁️ Dropbox",
-            "COIN": "₿ Coinbase",
-            "PYPL": "💳 PayPal",
-            "ZM": "🎥 Zoom",
-            "MSFT": "🖥️ Microsoft",
-            "AAPL": "📱 Apple",
-            "TSLA": "🚗 Tesla",
-            "NFLX": "🎬 Netflix",
-            "AMZN": "📦 Amazon",
-            "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+            "PEA": {
+                "^GSPC": "📈 S&P 500",
+                "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+            },
+            "TITRES": {
+                "SATS": "🛰️ EchoStar",
+                "DBX": "☁️ Dropbox",
+                "COIN": "₿ Coinbase",
+                "PYPL": "💳 PayPal",
+                "ZM": "🎥 Zoom",
+                "MSFT": "🖥️ Microsoft",
+                "AAPL": "📱 Apple",
+                "TSLA": "🚗 Tesla",
+                "NFLX": "🎬 Netflix",
+                "AMZN": "📦 Amazon"
+            }
         },
         "Romain": {
-            "FGR.PA": "🏗️ Eiffage",
-            "SOI.PA": "⚡ Soitec",
-            "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
-            "PCEU.PA": "�🇺 Amundi PEA MSCI Europe ETF",
-            "STMPA.PA": "� STMicroelectronics",
-            "DSY.PA": "💻 Dassault Systèmes",
-            "DEEZR.PA": "🎵 Deezer",
-            "FORSE.PA": "🔋 Forsee Power",
-            "WPEA.PA": "🌍 iShares MSCI World PEA ETF",
-            "LSG.OL": "🐟 Lerøy Seafood",
-            "BAYN.DE": "💊 Bayer",
-            "C50.PA": "🇪🇺 Amundi EURO STOXX 50 ETF",
-            "PAASI.PA": "🌏 Amundi PEA Asie Émergente ETF",
-            "VIE.PA": "♻️ Veolia Environnement",
-            "CHIP.PA": "🔬 Amundi Semiconductors ETF",
-            "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
-            "SATS": "🛰️ EchoStar",
-            "AM.PA": "✈️ Dassault Aviation"
+            "PEA": {
+                "FGR.PA": "🏗️ Eiffage",
+                "SOI.PA": "⚡ Soitec",
+                "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
+                "PCEU.PA": "�� Amundi PEA MSCI Europe ETF",
+                "STMPA.PA": "🔧 STMicroelectronics",
+                "DSY.PA": "💻 Dassault Systèmes",
+                "WPEA.PA": "🌍 iShares MSCI World PEA ETF",
+                "C50.PA": "🇪🇺 Amundi EURO STOXX 50 ETF",
+                "PAASI.PA": "🌏 Amundi PEA Asie Émergente ETF",
+                "VIE.PA": "♻️ Veolia Environnement",
+                "CHIP.PA": "🔬 Amundi Semiconductors ETF",
+                "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
+                "AM.PA": "✈️ Dassault Aviation"
+            },
+            "TITRES": {
+                "DEEZR.PA": "🎵 Deezer",
+                "FORSE.PA": "🔋 Forsee Power",
+                "LSG.OL": "🐟 Lerøy Seafood",
+                "BAYN.DE": "💊 Bayer",
+                "SATS": "🛰️ EchoStar"
+            }
         },
         "Roger": {
-            "^GSPC": "📈 S&P 500",
-            "SATS": "🛰️ EchoStar",
-            "TSM": "🔧 TSMC",
-            "NVDA": "🎮 NVIDIA",
-            "STX": "💾 Seagate",
-            "GOOGL": "🔍 Alphabet",
-            "AIBD": "🤖 AI & Big Data ETF",
-            "CCJ": "☢️ Cameco",
-            "AVGO": "📡 Broadcom",
-            "VST": "⚡ Vistra",
-            "V": "💳 Visa",
-            "AMD": "🖥️ AMD",
-            "ATLX": "🔋 Atlas Lithium",
-            "PDN.AX": "☢️ Paladin Energy",
-            "RHM.DE": "🛡️ Rheinmetall",
-            "NET": "☁️ Cloudflare",
-            "REGN": "💊 Regeneron",
-            "FRE.DE": "🏥 Fresenius",
-            "LRN": "🎓 Stride Inc",
-            "PLTR": "🛡️ Palantir",
-            "ABVX": "💉 Abivax",
-            "NEE": "⚡ NextEra Energy",
-            "SAF.PA": "✈️ Safran",
-            "MSFT": "🖥️ Microsoft",
-            "AAPL": "📱 Apple",
-            "AIR": "✈️ Airbus",
-            "ASML": "🔬 ASML",
-            "META": "📘 Meta",
-            "AGI": "⛏️ Alamos Gold",
-            "DFNS": "🛡️ Defence ETF",
-            "RYAAY": "✈️ Ryanair",
-            "MU": "💾 Micron Technology"
+            "PEA": {
+                "^GSPC": "📈 S&P 500",
+                "SAF.PA": "✈️ Safran",
+                "AIR": "✈️ Airbus",
+                "ASML": "🔬 ASML",
+                "NEE": "⚡ NextEra Energy",
+                "DFNS": "🛡️ Defence ETF",
+                "RYAAY": "✈️ Ryanair"
+            },
+            "TITRES": {
+                "SATS": "🛰️ EchoStar",
+                "TSM": "🔧 TSMC",
+                "NVDA": "🎮 NVIDIA",
+                "STX": "💾 Seagate",
+                "GOOGL": "🔍 Alphabet",
+                "AIBD": "🤖 AI & Big Data ETF",
+                "CCJ": "☢️ Cameco",
+                "AVGO": "📡 Broadcom",
+                "VST": "⚡ Vistra",
+                "V": "💳 Visa",
+                "AMD": "🖥️ AMD",
+                "ATLX": "🔋 Atlas Lithium",
+                "PDN.AX": "☢️ Paladin Energy",
+                "RHM.DE": "🛡️ Rheinmetall",
+                "NET": "☁️ Cloudflare",
+                "REGN": "💊 Regeneron",
+                "FRE.DE": "🏥 Fresenius",
+                "LRN": "🎓 Stride Inc",
+                "PLTR": "🛡️ Palantir",
+                "ABVX": "💉 Abivax",
+                "MSFT": "🖥️ Microsoft",
+                "AAPL": "📱 Apple",
+                "META": "📘 Meta",
+                "AGI": "⛏️ Alamos Gold",
+                "MU": "💾 Micron Technology"
+            }
         }
     }
 
-    # Actions disponibles pour l'utilisateur courant
-    actions_disponibles = actions_par_utilisateur[utilisateur]
+    # Actions disponibles pour l'utilisateur courant (aplatir pour le traitement)
+    actions_disponibles = {}
+    actions_categories = {}
+
+    for categorie, actions in actions_par_utilisateur[utilisateur].items():
+        for ticker, nom in actions.items():
+            actions_disponibles[ticker] = nom
+            actions_categories[ticker] = categorie
 
     liste_tickers = list(actions_disponibles.keys())
 
@@ -295,11 +313,26 @@ def main():
 
     # Charger tous les signaux en parallèle (cache 15 min)
     signaux_cache = get_all_signals(tuple(liste_tickers))
-    liste_noms_enrichis = []
+
+    # Grouper par catégories pour l'affichage
+    options_par_categorie = {}
     for ticker_key, nom in actions_disponibles.items():
+        categorie = actions_categories[ticker_key]
         signal = signaux_cache.get(ticker_key, "Neutre")
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-        liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
+        option_text = f"{emoji_feu} {nom} → {signal}"
+
+        if categorie not in options_par_categorie:
+            options_par_categorie[categorie] = []
+        options_par_categorie[categorie].append((ticker_key, option_text))
+
+    # Construire la liste finale avec séparateurs
+    liste_noms_enrichis = []
+    for categorie in ["PEA", "TITRES"]:
+        if categorie in options_par_categorie:
+            liste_noms_enrichis.append(f"--- 📊 {categorie} ---")
+            for ticker_key, option_text in options_par_categorie[categorie]:
+                liste_noms_enrichis.append(option_text)
 
     # Radio pour sélectionner l'action (key= pour éviter le double-clic)
     action_choisie = st.sidebar.radio(
@@ -309,9 +342,19 @@ def main():
         label_visibility="collapsed"
     )
 
-    # Retrouver le ticker correspondant
-    idx_action = liste_noms_enrichis.index(action_choisie)
-    selected_ticker = liste_tickers[idx_action]
+    # Retrouver le ticker correspondant (ignorer les séparateurs)
+    selected_ticker = None
+    for ticker_key, nom in actions_disponibles.items():
+        signal = signaux_cache.get(ticker_key, "Neutre")
+        emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
+        option_text = f"{emoji_feu} {nom} → {signal}"
+        if option_text == action_choisie:
+            selected_ticker = ticker_key
+            break
+
+    # Si pas trouvé (séparateur cliqué), utiliser le premier ticker
+    if selected_ticker is None:
+        selected_ticker = liste_tickers[0]
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
