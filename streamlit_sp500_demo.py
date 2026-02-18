@@ -285,11 +285,11 @@ def main():
                 "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
                 "AM.PA": "✈️ Dassault Aviation",
                 "BAYN.DE": "💊 Bayer",
-                "DEEZR.PA": "🎵 Deezer"
+                "DEEZR.PA": "🎵 Deezer",
+                "LSG.OL": "🐟 Lerøy Seafood"
             },
             "TITRES": {
                 "FORSE.PA": "🔋 Forsee Power",
-                "LSG.OL": "🐟 Lerøy Seafood",
                 "SATS": "🛰️ EchoStar"
             }
         },
