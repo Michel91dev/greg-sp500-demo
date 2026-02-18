@@ -275,8 +275,13 @@ def main():
     actions_par_utilisateur = {
         "Michel": {
             "PEA": {
-                "^GSPC": "� S&P 500",
-                "PANX.PA": "📈 Amundi NASDAQ-100 ETF"
+                "^GSPC": "📈 S&P 500",
+                "PANX.PA": "📈 Amundi NASDAQ-100 ETF",
+                "CW8.PA": "🌍 Amundi MSCI World Swap ETF",
+                "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
+                "PUST.PA": "📈 Amundi PEA Nasdaq-100 ETF",
+                "PSP5.PA": "📈 Amundi PEA S&P 500 ETF",
+                "ASML": "🔬 ASML"
             },
             "TITRES": {
                 "SATS": "🛰️ EchoStar",
