@@ -163,6 +163,28 @@ def main():
 
     st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide", initial_sidebar_state="collapsed")
 
+    # Splashscreen au premier lancement
+    if 'donnees_chargees' not in st.session_state:
+        splash = st.empty()
+        splash.markdown(
+            f"""
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+            height:80vh;text-align:center;">
+            <div style="font-size:5rem;margin-bottom:1rem;">📈</div>
+            <h1 style="font-size:2rem !important;margin-bottom:0.5rem !important;">Analyse Actions</h1>
+            <p style="color:#888;font-size:1.2rem;">Chargement des données en cours...</p>
+            <p style="color:#aaa;font-size:0.9rem;">v{version}</p>
+            <div style="margin-top:1rem;">
+            <div style="width:50px;height:50px;border:4px solid #ddd;border-top:4px solid #4682B4;
+            border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>
+            </div>
+            </div>
+            <style>@keyframes spin {{ 0% {{ transform:rotate(0deg); }} 100% {{ transform:rotate(360deg); }} }}</style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.session_state.splash_placeholder = splash
+
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
@@ -293,6 +315,12 @@ def main():
         signaux_cache[ticker_key] = (bg_color, signal)
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
         liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
+
+    # Supprimer le splashscreen après chargement
+    if 'splash_placeholder' in st.session_state:
+        st.session_state.splash_placeholder.empty()
+        del st.session_state.splash_placeholder
+        st.session_state.donnees_chargees = True
 
     # Trouver l'index de l'action sélectionnée
     idx_selected = liste_tickers.index(st.session_state.selected_ticker)
