@@ -417,7 +417,10 @@ def main():
         isin_text = ""
         if afficher_isin:
             isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
-            isin_text = f" | {isin_val}"
+            if isin_val == "ISIN inconnu":
+                isin_text = f" | <span style='color:pink;'>inconnu</span>"
+            else:
+                isin_text = f" | {isin_val}"
 
         option_text = f"{emoji_feu} {nom} → {signal}{isin_text}"
 
