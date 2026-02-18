@@ -418,7 +418,7 @@ def main():
         if afficher_isin:
             isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
             if isin_val == "ISIN inconnu":
-                isin_text = " | 🌸 inconnu"
+                isin_text = " | ℹ️ inconnu"
             else:
                 isin_text = f" | {isin_val}"
 
