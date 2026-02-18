@@ -285,6 +285,21 @@ def main():
     # Sélection rapide fusionnée avec recommandations
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
+    # Splashscreen pendant le chargement des signaux
+    splash = st.empty()
+    splash.markdown(
+        f"""
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:3rem 1rem;text-align:center;">
+        <div style="font-size:4rem;margin-bottom:1rem;">📈</div>
+        <h2 style="font-size:1.5rem !important;margin-bottom:0.5rem !important;">Analyse Actions</h2>
+        <p style="color:#888;font-size:1rem;">Chargement des signaux pour <b>{utilisateur}</b>...</p>
+        <p style="color:#aaa;font-size:0.8rem;">v{version}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     # Construire les options du radio avec noms enrichis (nom + signal)
     liste_noms_enrichis = []
     signaux_cache = {}
@@ -293,6 +308,9 @@ def main():
         signaux_cache[ticker_key] = (bg_color, signal)
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
         liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
+
+    # Supprimer le splashscreen une fois les signaux chargés
+    splash.empty()
 
     # Trouver l'index de l'action sélectionnée
     idx_selected = liste_tickers.index(st.session_state.selected_ticker)

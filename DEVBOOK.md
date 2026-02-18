@@ -12,8 +12,19 @@ Déployée sur Streamlit Cloud : bourse200-50.streamlit.app
 
 ## Historique des versions
 
-### v2.4.5 (en cours)
+### v2.4.7 (en cours)
+- Ajout splashscreen pendant le chargement des signaux
+
+### v2.4.6
+- Optimisation performance : cache API Yahoo Finance (@st.cache_data)
+- Signaux sidebar : cache 15 min
+- Données historiques : cache 15 min
+- Capitalisation boursière : cache 1h
+
+### v2.4.5
 - Fix sidebar iPhone : approche CSS pure compatible Streamlit
+- initial_sidebar_state="collapsed" pour sidebar fermée par défaut
+- Header réaffiché sur mobile pour bouton hamburger natif
 
 ### v2.4.4
 - Ajout capitalisation boursière dans les métriques principales
