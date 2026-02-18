@@ -284,10 +284,10 @@ def main():
                 "CHIP.PA": "🔬 Amundi Semiconductors ETF",
                 "PAEEM.PA": "🌍 Amundi PEA Émergents ETF",
                 "AM.PA": "✈️ Dassault Aviation",
-                "BAYN.DE": "💊 Bayer"
+                "BAYN.DE": "💊 Bayer",
+                "DEEZR.PA": "🎵 Deezer"
             },
             "TITRES": {
-                "DEEZR.PA": "🎵 Deezer",
                 "FORSE.PA": "🔋 Forsee Power",
                 "LSG.OL": "🐟 Lerøy Seafood",
                 "SATS": "🛰️ EchoStar"
@@ -412,19 +412,21 @@ def main():
             unsafe_allow_html=True
         )
 
-        options_pea = [opt_text for _, opt_text in options_par_categorie["PEA"]]
-        if options_pea:
+        # Utiliser les tickers comme valeurs des radios pour éviter les bugs
+        options_pea_labels = [opt_text for _, opt_text in options_par_categorie["PEA"]]
+        options_pea_values = [ticker for ticker, _ in options_par_categorie["PEA"]]
+
+        if options_pea_labels:
             action_pea = st.sidebar.radio(
                 "PEA :",
-                options_pea,
+                options=options_pea_labels,
                 key="action_pea",
                 label_visibility="collapsed"
             )
-            # Récupérer le ticker sélectionné dans PEA
-            for ticker_key, option_text in options_par_categorie["PEA"]:
-                if option_text == action_pea:
-                    selected_ticker = ticker_key
-                    break
+            # Récupérer le ticker sélectionné via l'index
+            if action_pea in options_pea_labels:
+                idx = options_pea_labels.index(action_pea)
+                selected_ticker = options_pea_values[idx]
 
     # Catégorie TITRES
     if "TITRES" in options_par_categorie:
@@ -437,19 +439,21 @@ def main():
             unsafe_allow_html=True
         )
 
-        options_titres = [opt_text for _, opt_text in options_par_categorie["TITRES"]]
-        if options_titres:
+        # Utiliser les tickers comme valeurs des radios pour éviter les bugs
+        options_titres_labels = [opt_text for _, opt_text in options_par_categorie["TITRES"]]
+        options_titres_values = [ticker for ticker, _ in options_par_categorie["TITRES"]]
+
+        if options_titres_labels:
             action_titres = st.sidebar.radio(
                 "TITRES :",
-                options_titres,
+                options=options_titres_labels,
                 key="action_titres",
                 label_visibility="collapsed"
             )
-            # Récupérer le ticker sélectionné dans TITRES
-            for ticker_key, option_text in options_par_categorie["TITRES"]:
-                if option_text == action_titres:
-                    selected_ticker = ticker_key
-                    break
+            # Récupérer le ticker sélectionné via l'index
+            if action_titres in options_titres_labels:
+                idx = options_titres_labels.index(action_titres)
+                selected_ticker = options_titres_values[idx]
 
     # Si aucune sélection, utiliser le premier ticker disponible
     if selected_ticker is None:
