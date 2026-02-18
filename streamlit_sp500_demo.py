@@ -398,64 +398,37 @@ def main():
             options_par_categorie[categorie] = []
         options_par_categorie[categorie].append((ticker_key, option_text))
 
-    # Afficher les catégories avec radios séparés et trait bleu
-    selected_ticker = None
+    # Construire une liste unique avec séparateurs visuels pour un seul radio
+    liste_radio = []
+    liste_radio_tickers = []
 
-    # Catégorie PEA
-    if "PEA" in options_par_categorie:
-        st.sidebar.markdown(
-            f'<div style="text-align:center;font-weight:bold;color:#4682B4;margin:1rem 0;">📊 PEA</div>',
-            unsafe_allow_html=True
-        )
-        st.sidebar.markdown(
-            '<div style="height:2px;background:#4682B4;margin:0.5rem 0;"></div>',
-            unsafe_allow_html=True
-        )
+    for categorie in ["PEA", "TITRES"]:
+        if categorie in options_par_categorie:
+            # Séparateur visuel (non cliquable visuellement mais dans le radio)
+            liste_radio.append(f"━━━ 📊 {categorie} ━━━")
+            liste_radio_tickers.append(None)
+            for ticker_key, option_text in options_par_categorie[categorie]:
+                liste_radio.append(option_text)
+                liste_radio_tickers.append(ticker_key)
 
-        # Utiliser les tickers comme valeurs des radios pour éviter les bugs
-        options_pea_labels = [opt_text for _, opt_text in options_par_categorie["PEA"]]
-        options_pea_values = [ticker for ticker, _ in options_par_categorie["PEA"]]
+    # Un seul radio pour tout
+    # Trouver le premier vrai ticker (pas un séparateur) comme défaut
+    default_idx = next(i for i, t in enumerate(liste_radio_tickers) if t is not None)
 
-        if options_pea_labels:
-            action_pea = st.sidebar.radio(
-                "PEA :",
-                options=options_pea_labels,
-                key="action_pea",
-                label_visibility="collapsed"
-            )
-            # Récupérer le ticker sélectionné via l'index
-            if action_pea in options_pea_labels:
-                idx = options_pea_labels.index(action_pea)
-                selected_ticker = options_pea_values[idx]
+    action_choisie = st.sidebar.radio(
+        "Action :",
+        liste_radio,
+        index=default_idx,
+        key="action_radio",
+        label_visibility="collapsed"
+    )
 
-    # Catégorie TITRES
-    if "TITRES" in options_par_categorie:
-        st.sidebar.markdown(
-            f'<div style="text-align:center;font-weight:bold;color:#4682B4;margin:1rem 0;">📊 TITRES</div>',
-            unsafe_allow_html=True
-        )
-        st.sidebar.markdown(
-            '<div style="height:2px;background:#4682B4;margin:0.5rem 0;"></div>',
-            unsafe_allow_html=True
-        )
+    # Récupérer le ticker correspondant
+    if action_choisie in liste_radio:
+        idx = liste_radio.index(action_choisie)
+        selected_ticker = liste_radio_tickers[idx]
 
-        # Utiliser les tickers comme valeurs des radios pour éviter les bugs
-        options_titres_labels = [opt_text for _, opt_text in options_par_categorie["TITRES"]]
-        options_titres_values = [ticker for ticker, _ in options_par_categorie["TITRES"]]
-
-        if options_titres_labels:
-            action_titres = st.sidebar.radio(
-                "TITRES :",
-                options=options_titres_labels,
-                key="action_titres",
-                label_visibility="collapsed"
-            )
-            # Récupérer le ticker sélectionné via l'index
-            if action_titres in options_titres_labels:
-                idx = options_titres_labels.index(action_titres)
-                selected_ticker = options_titres_values[idx]
-
-    # Si aucune sélection, utiliser le premier ticker disponible
+    # Si séparateur cliqué, utiliser le premier vrai ticker
     if selected_ticker is None:
         selected_ticker = liste_tickers[0]
 
