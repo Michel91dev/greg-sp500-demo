@@ -10,6 +10,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 # Lire la version depuis le fichier
 def get_version():
@@ -250,41 +251,41 @@ def main():
 
     liste_tickers = list(actions_disponibles.keys())
 
-    # Fonction pour déterminer la recommandation (cache 15 min pour éviter lenteur)
+    # Fonction pour déterminer la recommandation (cache 15 min)
     @st.cache_data(ttl=900)
-    def get_recommendation_signal(ticker_symbol):
-        try:
-            ticker = yf.Ticker(ticker_symbol)
-            data = ticker.history(period="1y")
-            if data.empty:
-                return "#FFFFFF", "Neutre"
-            data['MA50'] = data['Close'].rolling(window=50).mean()
-            data['MA200'] = data['Close'].rolling(window=200).mean()
-            prix_actuel = data['Close'].iloc[-1]
-            dernier_ma50 = data['MA50'].iloc[-1]
-            dernier_ma200 = data['MA200'].iloc[-1]
-            if prix_actuel > dernier_ma50 > dernier_ma200:
-                return "#90EE90", "Acheter"
-            elif prix_actuel < dernier_ma50 < dernier_ma200:
-                return "#FFB6C1", "Vendre"
-            else:
-                return "#FFE4B5", "Attente"
-        except:
-            return "#FFFFFF", "Neutre"
+    def get_all_signals(tickers_list):
+        """Charger tous les signaux en parallèle"""
+        def _signal(sym):
+            try:
+                d = yf.Ticker(sym).history(period="1y")
+                if d.empty:
+                    return sym, "Neutre"
+                d['MA50'] = d['Close'].rolling(window=50).mean()
+                d['MA200'] = d['Close'].rolling(window=200).mean()
+                p = d['Close'].iloc[-1]
+                m50 = d['MA50'].iloc[-1]
+                m200 = d['MA200'].iloc[-1]
+                if p > m50 > m200:
+                    return sym, "Acheter"
+                elif p < m50 < m200:
+                    return sym, "Vendre"
+                return sym, "Attente"
+            except:
+                return sym, "Neutre"
+        with ThreadPoolExecutor(max_workers=10) as ex:
+            results = dict(ex.map(lambda s: _signal(s), tickers_list))
+        return results
 
     # Sélection rapide fusionnée avec recommandations
     st.sidebar.subheader("🎯 Actions & Recommandations")
 
-    # Construire les options du radio avec noms enrichis (nom + signal)
-    with st.status("📈 Chargement des signaux...", expanded=False) as status_bar:
-        liste_noms_enrichis = []
-        signaux_cache = {}
-        for ticker_key, nom in actions_disponibles.items():
-            bg_color, signal = get_recommendation_signal(ticker_key)
-            signaux_cache[ticker_key] = (bg_color, signal)
-            emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
-            liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
-        status_bar.update(label="✅ Signaux chargés", state="complete")
+    # Charger tous les signaux en parallèle (cache 15 min)
+    signaux_cache = get_all_signals(tuple(liste_tickers))
+    liste_noms_enrichis = []
+    for ticker_key, nom in actions_disponibles.items():
+        signal = signaux_cache.get(ticker_key, "Neutre")
+        emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
+        liste_noms_enrichis.append(f"{emoji_feu} {nom} → {signal}")
 
     # Radio pour sélectionner l'action (key= pour éviter le double-clic)
     action_choisie = st.sidebar.radio(
@@ -389,35 +390,25 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
 
     # Fonctions cachées pour éviter les appels API répétés
     @st.cache_data(ttl=900)
-    def charger_donnees(symbol, per):
-        """Charger les données historiques (cache 15 min)"""
+    def charger_donnees_et_cap(symbol, per):
+        """Charger données historiques + capitalisation en un seul appel (cache 15 min)"""
         t = yf.Ticker(symbol)
-        return t.history(period=per)
-
-    @st.cache_data(ttl=3600)
-    def charger_capitalisation(symbol):
-        """Charger la capitalisation boursière (cache 1h)"""
+        data = t.history(period=per)
         try:
-            info = yf.Ticker(symbol).info
-            return info.get('marketCap', None)
+            cap = t.info.get('marketCap', None)
         except:
-            return None
+            cap = None
+        return data, cap
 
     # Chargement des données
-    with st.spinner(f"Chargement des données de {nom_action}..."):
-        try:
-            data = charger_donnees(ticker_symbol, periode)
-
-            if data.empty:
-                st.error(f"Impossible de charger les données pour {ticker_symbol}. Vérifiez le ticker et votre connexion.")
-                return
-
-        except Exception as e:
-            st.error(f"Erreur lors du chargement: {e}")
+    try:
+        data, market_cap = charger_donnees_et_cap(ticker_symbol, periode)
+        if data.empty:
+            st.error(f"Impossible de charger les données pour {ticker_symbol}.")
             return
-
-    # Récupérer la capitalisation boursière
-    market_cap = charger_capitalisation(ticker_symbol)
+    except Exception as e:
+        st.error(f"Erreur lors du chargement: {e}")
+        return
     if market_cap:
         if market_cap >= 1e12:
             market_cap_str = f"{market_cap/1e12:.1f} T$"
