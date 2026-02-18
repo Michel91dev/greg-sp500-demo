@@ -260,7 +260,8 @@ def main():
     if st.session_state.selected_ticker not in liste_tickers:
         st.session_state.selected_ticker = liste_tickers[0]
 
-    # Fonction pour déterminer la recommandation
+    # Fonction pour déterminer la recommandation (cache 15 min pour éviter lenteur)
+    @st.cache_data(ttl=900)
     def get_recommendation_signal(ticker_symbol):
         try:
             ticker = yf.Ticker(ticker_symbol)
@@ -398,12 +399,26 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     st.title(f"📈 {nom_action}")
     st.caption(f"Analyse technique de {nom_action}")
 
-    # Chargement des données (d'abord pour avoir prix_actuel)
+    # Fonctions cachées pour éviter les appels API répétés
+    @st.cache_data(ttl=900)
+    def charger_donnees(symbol, per):
+        """Charger les données historiques (cache 15 min)"""
+        t = yf.Ticker(symbol)
+        return t.history(period=per)
+
+    @st.cache_data(ttl=3600)
+    def charger_capitalisation(symbol):
+        """Charger la capitalisation boursière (cache 1h)"""
+        try:
+            info = yf.Ticker(symbol).info
+            return info.get('marketCap', None)
+        except:
+            return None
+
+    # Chargement des données
     with st.spinner(f"Chargement des données de {nom_action}..."):
         try:
-            # Ticker de l'action
-            ticker = yf.Ticker(ticker_symbol)
-            data = ticker.history(period=periode)
+            data = charger_donnees(ticker_symbol, periode)
 
             if data.empty:
                 st.error(f"Impossible de charger les données pour {ticker_symbol}. Vérifiez le ticker et votre connexion.")
@@ -413,22 +428,18 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
             st.error(f"Erreur lors du chargement: {e}")
             return
 
-    # Récupérer les informations fondamentales de l'entreprise
-    try:
-        info = ticker.info
-        market_cap = info.get('marketCap', None)
-        if market_cap:
-            if market_cap >= 1e12:
-                market_cap_str = f"{market_cap/1e12:.1f} T$"
-            elif market_cap >= 1e9:
-                market_cap_str = f"{market_cap/1e9:.1f} G$"
-            elif market_cap >= 1e6:
-                market_cap_str = f"{market_cap/1e6:.1f} M$"
-            else:
-                market_cap_str = f"{market_cap:.0f} $"
+    # Récupérer la capitalisation boursière
+    market_cap = charger_capitalisation(ticker_symbol)
+    if market_cap:
+        if market_cap >= 1e12:
+            market_cap_str = f"{market_cap/1e12:.1f} T$"
+        elif market_cap >= 1e9:
+            market_cap_str = f"{market_cap/1e9:.1f} G$"
+        elif market_cap >= 1e6:
+            market_cap_str = f"{market_cap/1e6:.1f} M$"
         else:
-            market_cap_str = "N/A"
-    except:
+            market_cap_str = f"{market_cap:.0f} $"
+    else:
         market_cap_str = "N/A"
 
     # Métriques principales (5 colonnes pour inclure la capitalisation)
