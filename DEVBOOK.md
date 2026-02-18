@@ -13,6 +13,22 @@ Déployée sur Streamlit Cloud : bourse200-50.streamlit.app
 
 ## Historique des versions
 
+### v2.5.10 ⭐ VERSION DE RÉFÉRENCE SOLIDE
+- Lerøy Seafood dans PEA (Norvège éligible PEA via EEE)
+- Un seul radio unique PEA+TITRES avec séparateurs visuels
+- Checkbox ISIN fonctionnelle avec gestion robuste des sélections
+- Deezer dans PEA (confirmé par utilisateur)
+- Structure finale : Romain PEA=16, TITRES=2
+
+### v2.5.9
+- Un seul radio unique PEA+TITRES avec séparateurs visuels (fix coexistence impossible)
+
+### v2.5.8
+- Deezer dans PEA (Romain l'a sur son PEA), fix radios PEA/TITRES (bug checkbox ISIN)
+
+### v2.5.7
+- Checkbox ISIN + correction catégories PEA/TITRES (Bayer dans PEA, suppression doublons)
+
 ### v2.5.6
 - Catégories PEA/TITRES sans radio, trait bleu traversant pour séparation visuelle
 - Deux radios séparés par catégorie avec keys distinctes
