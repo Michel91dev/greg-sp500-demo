@@ -446,13 +446,8 @@ def main():
         signal = signaux_cache.get(ticker_key, "Neutre")
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
 
-        # Ajouter l'ISIN si la checkbox est cochée (texte simple dans le radio)
-        isin_text = ""
-        if afficher_isin:
-            isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
-            isin_text = "  ℹ️" if isin_val == "ISIN inconnu" else f"  🏷 {isin_val}"
-
-        option_text = f"{emoji_feu} {nom} → {signal}{isin_text}"
+        isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
+        option_text = f"{emoji_feu} {nom} → {signal}"
 
         if categorie not in options_par_categorie:
             options_par_categorie[categorie] = []
@@ -469,39 +464,64 @@ def main():
         elif ordre_tri == "Signal (Vendre en 1er)":
             options_par_categorie[cat].sort(key=lambda x: -ordre_signal.get(signaux_cache.get(x[0], "Neutre"), 2))
 
-    # Construire une liste unique avec séparateurs visuels pour un seul radio
-    liste_radio = []
-    liste_radio_tickers = []
+    # Initialiser le ticker sélectionné dans session_state
+    if "selected_ticker_key" not in st.session_state:
+        st.session_state["selected_ticker_key"] = liste_tickers[0] if liste_tickers else None
+    # S'assurer que le ticker sélectionné est dans la liste courante
+    if st.session_state["selected_ticker_key"] not in actions_disponibles:
+        st.session_state["selected_ticker_key"] = liste_tickers[0] if liste_tickers else None
 
+    # CSS pour les lignes de sélection
+    st.sidebar.markdown("""
+    <style>
+    div[data-testid="stSidebarContent"] .ticker-row button {
+        text-align: left !important;
+        background: none !important;
+        border: none !important;
+        padding: 2px 0 !important;
+    }
+    </style>""", unsafe_allow_html=True)
+
+    # Afficher la liste par catégorie avec bouton sélection + poubelle
     for categorie in ["PEA", "TITRES"]:
-        if categorie in options_par_categorie:
-            # Séparateur visuel (non cliquable visuellement mais dans le radio)
-            liste_radio.append(f"━━━ 📊 {categorie} ━━━")
-            liste_radio_tickers.append(None)
-            for ticker_key, option_text in options_par_categorie[categorie]:
-                liste_radio.append(option_text)
-                liste_radio_tickers.append(ticker_key)
+        if categorie not in options_par_categorie:
+            continue
+        st.sidebar.markdown(
+            f'<div style="font-weight:bold;color:#888;font-size:0.8em;'
+            f'margin:6px 0 2px 0;border-bottom:1px solid #ccc;">� {categorie}</div>',
+            unsafe_allow_html=True
+        )
+        for ticker_key, option_text in options_par_categorie[categorie]:
+            isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
+            est_selectionne = (st.session_state["selected_ticker_key"] == ticker_key)
+            bg = "background:#E8F4FD;border-radius:4px;" if est_selectionne else ""
 
-    # Un seul radio pour tout
-    # Trouver le premier vrai ticker (pas un séparateur) comme défaut
-    default_idx = next(i for i, t in enumerate(liste_radio_tickers) if t is not None)
+            # Ligne : [signal+nom] [ISIN en pêche foncé] [🗑️]
+            col_sel, col_del = st.sidebar.columns([9, 1])
+            with col_sel:
+                isin_display = ""
+                if afficher_isin:
+                    if isin_val == "ISIN inconnu":
+                        isin_display = ' <span style="color:#E8622A;font-size:0.8em;">ℹ️</span>'
+                    else:
+                        isin_display = f' <span style="color:#E8622A;font-size:0.8em;font-weight:bold;">{isin_val}</span>'
+                st.markdown(
+                    f'<div style="{bg}padding:2px 4px;cursor:pointer;font-size:0.88em;">'
+                    f'{option_text}{isin_display}</div>',
+                    unsafe_allow_html=True
+                )
+                if st.button(option_text[:40], key=f"sel_{ticker_key}", label_visibility="collapsed"):
+                    st.session_state["selected_ticker_key"] = ticker_key
+                    st.rerun()
+            with col_del:
+                if st.button("🗑️", key=f"del_{ticker_key}", help=f"Supprimer ISIN de {ticker_key}"):
+                    if "isin_custom" not in st.session_state:
+                        st.session_state["isin_custom"] = {}
+                    st.session_state["isin_custom"].pop(ticker_key, None)
+                    isin_actions[ticker_key] = "ISIN inconnu"
+                    st.rerun()
 
-    action_choisie = st.sidebar.radio(
-        "Action :",
-        liste_radio,
-        index=default_idx,
-        key="action_radio",
-        label_visibility="collapsed"
-    )
-
-    # Récupérer le ticker correspondant
-    if action_choisie in liste_radio:
-        idx = liste_radio.index(action_choisie)
-        selected_ticker = liste_radio_tickers[idx]
-
-    # Si séparateur cliqué, utiliser le premier vrai ticker
-    if selected_ticker is None:
-        selected_ticker = liste_tickers[0]
+    selected_ticker = st.session_state.get("selected_ticker_key") or (liste_tickers[0] if liste_tickers else None)
 
     # Afficher ISIN + nom complet sous la ligne sélectionnée (couleur pêche, sans fond)
     if selected_ticker:
@@ -1081,7 +1101,7 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
         ))
         fig_bb.add_trace(go.Scatter(
             x=data.index, y=data['Close'],
-            mode='lines', name='Prix', line=dict(color='black', width=2)
+            mode='lines@', name='Prix', line=dict(color='black', width=2)
         ))
 
         fig_bb.update_layout(
