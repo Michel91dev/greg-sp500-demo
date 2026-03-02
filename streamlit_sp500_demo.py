@@ -165,6 +165,18 @@ def main():
 
     st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
 
+    # CSS global : ISIN en couleur pêche dans les labels radio de la sidebar
+    st.markdown("""
+    <style>
+    /* Colorier les codes ISIN (pattern 2 lettres + 10 alphanumériques) dans les labels radio de la sidebar */
+    [data-testid="stSidebarContent"] .stRadio label p {
+        font-size: 0.88em;
+    }
+    </style>
+    <script>
+    </script>
+    """, unsafe_allow_html=True)
+
     # Sidebar avec documentation
     st.sidebar.markdown("## 📈 Site d'analyse d'actions")
     st.sidebar.markdown("*Pour Romain, Roger et Michel*")
@@ -434,11 +446,11 @@ def main():
         signal = signaux_cache.get(ticker_key, "Neutre")
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
 
-        # Ajouter l'ISIN si la checkbox est cochée
+        # Ajouter l'ISIN si la checkbox est cochée (texte simple dans le radio)
         isin_text = ""
         if afficher_isin:
             isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
-            isin_text = " ℹ️ inconnu" if isin_val == "ISIN inconnu" else f" {isin_val}"
+            isin_text = "  ℹ️" if isin_val == "ISIN inconnu" else f"  🏷 {isin_val}"
 
         option_text = f"{emoji_feu} {nom} → {signal}{isin_text}"
 
@@ -491,22 +503,38 @@ def main():
     if selected_ticker is None:
         selected_ticker = liste_tickers[0]
 
-    # Afficher l'ISIN en couleur pêche sous le radio (si checkbox cochée)
-    if afficher_isin and selected_ticker:
+    # Afficher ISIN + nom complet sous la ligne sélectionnée (couleur pêche, sans fond)
+    if selected_ticker:
         isin_val = isin_actions.get(selected_ticker, "ISIN inconnu")
-        if isin_val == "ISIN inconnu":
+        @st.cache_data(ttl=86400)
+        def get_nom_complet(sym: str) -> str:
+            try:
+                info = yf.Ticker(sym).info
+                return info.get("longName") or info.get("shortName") or sym
+            except Exception:
+                return sym
+        nom_complet = get_nom_complet(selected_ticker)
+        if isin_val != "ISIN inconnu":
             st.sidebar.markdown(
-                '<span style="color:#FFAA80;font-size:0.85em;">ℹ️ ISIN inconnu</span>',
+                f'<div style="color:#FFAA80;font-size:0.82em;margin:-4px 0 4px 4px;">' \
+                f'🏷 <b>{isin_val}</b> &nbsp;·&nbsp; {nom_complet}</div>',
                 unsafe_allow_html=True
             )
         else:
             st.sidebar.markdown(
-                f'<span style="color:#FFAA80;font-size:0.85em;">🔖 {isin_val}</span>',
+                f'<div style="color:#FFAA80;font-size:0.82em;margin:-4px 0 4px 4px;">' \
+                f'ℹ️ ISIN inconnu &nbsp;·&nbsp; {nom_complet}</div>',
                 unsafe_allow_html=True
             )
 
-    # ── Gestion ISIN ──
-    with st.sidebar.expander("🔑 Gérer les ISIN"):
+    # ── Gestion ISIN ── cartouche coloré
+    st.sidebar.markdown(
+        '<div style="background:linear-gradient(90deg,#FFAA80,#FF8C66);'
+        'color:white;padding:4px 8px;border-radius:6px;font-weight:bold;'
+        'font-size:0.9em;margin:6px 0 2px 0;">🔑 Gérer les ISIN</div>',
+        unsafe_allow_html=True
+    )
+    with st.sidebar.expander("", expanded=False):
         st.write("**Modifier ou ajouter un ISIN**")
         # Initialiser le store ISIN dans session_state pour persistance
         if "isin_custom" not in st.session_state:
@@ -532,38 +560,47 @@ def main():
             format_func=lambda t: f"{t} — {actions_disponibles.get(t, t).split(' ', 1)[-1]}",
             key="ticker_isin_sel"
         )
-        isin_actuel = isin_actions.get(ticker_isin, "")
+        isin_actuel = isin_actions.get(ticker_isin, "ISIN inconnu")
+
+        # Afficher l'ISIN actuel avec poubelle
+        col_cur1, col_cur2 = st.columns([4, 1])
+        with col_cur1:
+            if isin_actuel != "ISIN inconnu":
+                st.markdown(
+                    f'<span style="color:#FFAA80;font-weight:bold;">{isin_actuel}</span>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown('<span style="color:#FFAA80;">ℹ️ inconnu</span>', unsafe_allow_html=True)
+        with col_cur2:
+            if st.button("🗑️", key="btn_del_isin", help="Supprimer cet ISIN"):
+                st.session_state["isin_custom"].pop(ticker_isin, None)
+                isin_actions[ticker_isin] = "ISIN inconnu"
+                st.success(f"Supprimé")
+
         nouvel_isin = st.text_input(
-            "ISIN (ex: FR0000035093) :",
-            value="" if isin_actuel == "ISIN inconnu" else isin_actuel,
+            "Nouvel ISIN (ex: FR0000035093) :",
+            value="",
             key="nouvel_isin_input",
-            max_chars=12
+            max_chars=12,
+            placeholder="FR0000035093"
         ).strip().upper()
 
         isin_valide = bool(re.match(r'^[A-Z]{2}[A-Z0-9]{10}$', nouvel_isin)) if nouvel_isin else False
 
-        col_isin1, col_isin2 = st.columns(2)
-        with col_isin1:
-            if st.button("💾 Enregistrer", key="btn_save_isin"):
-                if not nouvel_isin:
-                    st.warning("ISIN vide — non enregistré.")
-                elif not isin_valide:
-                    st.error("Format invalide. Ex: FR0000035093 (2 lettres + 10 caractères)")
-                else:
-                    st.session_state["isin_custom"][ticker_isin] = nouvel_isin
-                    st.success(f"✅ ISIN {nouvel_isin} enregistré pour {ticker_isin}")
-        with col_isin2:
-            if st.button("🗑️ Supprimer", key="btn_del_isin"):
-                st.session_state["isin_custom"].pop(ticker_isin, None)
-                # Remettre inconnu si supprimé d'un ISIN par défaut
-                if ticker_isin in isin_actions:
-                    isin_actions[ticker_isin] = "ISIN inconnu"
-                st.success(f"ISIN supprimé pour {ticker_isin}")
+        if st.button("💾 Enregistrer", key="btn_save_isin"):
+            if not nouvel_isin:
+                st.warning("ISIN vide — non enregistré.")
+            elif not isin_valide:
+                st.error("Format invalide. Ex: FR0000035093")
+            else:
+                st.session_state["isin_custom"][ticker_isin] = nouvel_isin
+                st.success(f"✅ {nouvel_isin} enregistré")
 
         if nouvel_isin and not isin_valide:
-            st.caption("⚠️ Format ISIN invalide")
+            st.caption("⚠️ Format invalide")
         elif isin_valide:
-            st.caption(f"✅ Format valide")
+            st.caption("✅ Format valide")
 
     # Option personnalisée en dessous
     custom_mode = st.sidebar.checkbox("🔧 Mode personnalisé")
