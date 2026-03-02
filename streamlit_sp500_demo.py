@@ -180,6 +180,11 @@ def main():
         width: 100% !important;
         margin: 0 !important;
     }
+    [data-testid="stSidebarContent"] button[kind="secondary"][data-testid="baseButton-secondary"] {
+        padding: 2px 4px !important;
+        font-size: 0.75em !important;
+        min-height: 0 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -492,21 +497,33 @@ def main():
             emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
             est_selectionne = (st.session_state["selected_ticker_key"] == ticker_key)
 
-            col_sel, col_del = st.sidebar.columns([9, 1])
+            col_boule, col_sel, col_del = st.sidebar.columns([1, 8, 1])
+            with col_boule:
+                if est_selectionne:
+                    st.markdown(
+                        f'<div style="border:2px solid #C62828;border-radius:50%;'
+                        f'width:26px;height:26px;display:flex;align-items:center;'
+                        f'justify-content:center;font-size:1.1em;margin-top:4px;">{emoji_feu}</div>',
+                        unsafe_allow_html=True
+                    )
+                else:
+                    st.markdown(
+                        f'<div style="font-size:1.1em;margin-top:4px;padding-left:2px;">{emoji_feu}</div>',
+                        unsafe_allow_html=True
+                    )
             with col_sel:
-                # Tout dans le label texte brut (signal + ISIN dans le cartouche)
                 isin_txt = ""
                 if afficher_isin:
                     isin_txt = " ( )" if isin_val == "ISIN inconnu" else f" ({isin_val})"
                 if est_selectionne:
-                    label = f"▶▶▶ {emoji_feu} {nom_pur} → {signal}{isin_txt} ◄◄◄"
+                    label = f"▶▶▶ {nom_pur} → {signal}{isin_txt} ◄◄◄"
                 else:
-                    label = f"  {emoji_feu} {nom_pur} → {signal}{isin_txt}"
+                    label = f"{nom_pur} → {signal}{isin_txt}"
                 if st.button(label, key=f"sel_{ticker_key}", use_container_width=True):
                     st.session_state["selected_ticker_key"] = ticker_key
                     st.rerun()
             with col_del:
-                if st.button("🗑️", key=f"del_{ticker_key}", help=f"Supprimer ISIN de {ticker_key}"):
+                if st.button("🗑️", key=f"del_{ticker_key}", help=f"Supprimer ISIN de {ticker_key}", use_container_width=True):
                     if "isin_custom" not in st.session_state:
                         st.session_state["isin_custom"] = {}
                     st.session_state["isin_custom"].pop(ticker_key, None)
