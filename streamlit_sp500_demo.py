@@ -434,16 +434,7 @@ def main():
         signal = signaux_cache.get(ticker_key, "Neutre")
         emoji_feu = {"Acheter": "🟢", "Vendre": "🔴", "Attente": "🟡", "Neutre": "⚪"}.get(signal, "⚪")
 
-        # Ajouter l'ISIN si la checkbox est cochée
-        isin_text = ""
-        if afficher_isin:
-            isin_val = isin_actions.get(ticker_key, "ISIN inconnu")
-            if isin_val == "ISIN inconnu":
-                isin_text = " | ℹ️ inconnu"
-            else:
-                isin_text = f" | {isin_val}"
-
-        option_text = f"{emoji_feu} {nom} → {signal}{isin_text}"
+        option_text = f"{emoji_feu} {nom} → {signal}"
 
         if categorie not in options_par_categorie:
             options_par_categorie[categorie] = []
@@ -494,6 +485,20 @@ def main():
     if selected_ticker is None:
         selected_ticker = liste_tickers[0]
 
+    # Afficher l'ISIN en couleur pêche sous le radio (si checkbox cochée)
+    if afficher_isin and selected_ticker:
+        isin_val = isin_actions.get(selected_ticker, "ISIN inconnu")
+        if isin_val == "ISIN inconnu":
+            st.sidebar.markdown(
+                '<span style="color:#FFAA80;font-size:0.85em;">ℹ️ ISIN inconnu</span>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.sidebar.markdown(
+                f'<span style="color:#FFAA80;font-size:0.85em;">🔖 {isin_val}</span>',
+                unsafe_allow_html=True
+            )
+
     # ── Gestion ISIN ──
     with st.sidebar.expander("🔑 Gérer les ISIN"):
         st.write("**Modifier ou ajouter un ISIN**")
@@ -504,11 +509,21 @@ def main():
         # Appliquer les ISIN personnalisés par-dessus les ISIN par défaut
         isin_actions.update(st.session_state["isin_custom"])
 
+        # Filtre par catégorie
+        cat_isin = st.radio(
+            "Catégorie :",
+            ["PEA", "COMPTE TITRES"],
+            horizontal=True,
+            key="cat_isin_radio"
+        )
+        cat_key = "PEA" if cat_isin == "PEA" else "TITRES"
+        tickers_cat = list(actions_par_utilisateur[utilisateur].get(cat_key, {}).keys())
+
         # Sélectionner le ticker à modifier
         ticker_isin = st.selectbox(
             "Ticker :",
-            options=list(actions_disponibles.keys()),
-            format_func=lambda t: f"{t} — {actions_disponibles[t].split(' ', 1)[-1]}",
+            options=tickers_cat if tickers_cat else list(actions_disponibles.keys()),
+            format_func=lambda t: f"{t} — {actions_disponibles.get(t, t).split(' ', 1)[-1]}",
             key="ticker_isin_sel"
         )
         isin_actuel = isin_actions.get(ticker_isin, "")
