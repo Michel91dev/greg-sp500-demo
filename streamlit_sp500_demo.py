@@ -501,9 +501,9 @@ def main():
             with col_boule:
                 if est_selectionne:
                     st.markdown(
-                        f'<div style="border:2px solid #C62828;border-radius:50%;'
-                        f'width:26px;height:26px;display:flex;align-items:center;'
-                        f'justify-content:center;font-size:1.1em;margin-top:4px;">{emoji_feu}</div>',
+                        f'<div style="border:4px solid #C62828;border-radius:50%;'
+                        f'width:28px;height:28px;display:flex;align-items:center;'
+                        f'justify-content:center;font-size:1.1em;margin-top:3px;">{emoji_feu}</div>',
                         unsafe_allow_html=True
                     )
                 else:
