@@ -487,15 +487,18 @@ def main():
 
             col_sel, col_del = st.sidebar.columns([9, 1])
             with col_sel:
-                # Label texte brut pour le bouton (pas de HTML)
+                # ISIN en texte brut dans le label pour toutes les lignes
+                isin_txt = ""
+                if afficher_isin:
+                    isin_txt = " ℹ️" if isin_val == "ISIN inconnu" else f" | {isin_val}"
                 if est_selectionne:
-                    label = f"▶ {emoji_feu} {nom_pur} ◄"
+                    label = f"▶ {emoji_feu} {nom_pur}{isin_txt} ◄"
                 else:
-                    label = f"  {emoji_feu} {nom_pur}"
+                    label = f"  {emoji_feu} {nom_pur}{isin_txt}"
                 if st.button(label, key=f"sel_{ticker_key}", use_container_width=True):
                     st.session_state["selected_ticker_key"] = ticker_key
                     st.rerun()
-                # Sous la ligne active : signal coloré + ISIN pêche via markdown
+                # Sous la ligne active : signal coloré + ISIN pêche (dans col_sel)
                 if est_selectionne:
                     coul_sig = couleur_signal.get(signal, "#666")
                     isin_html = ""
@@ -504,7 +507,7 @@ def main():
                             isin_html = ' &nbsp;<span style="color:#E8622A;">ℹ️ inconnu</span>'
                         else:
                             isin_html = f' &nbsp;<span style="color:#E8622A;font-weight:bold;">{isin_val}</span>'
-                    st.sidebar.markdown(
+                    st.markdown(
                         f'<div style="font-size:0.8em;padding:1px 6px 4px 6px;margin-top:-4px;">'
                         f'<span style="color:{coul_sig};font-weight:bold;">{signal}</span>'
                         f'{isin_html}</div>',
