@@ -568,6 +568,8 @@ def main():
         # ── Onglet Ajouter un nouveau ticker ──
         with onglet_add:
             st.caption(f"Ajouter un ticker pour **{utilisateur}**")
+
+            # Étape 1 : saisie ISIN
             nouvel_isin_add = st.text_input(
                 "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
             ).strip().upper()
@@ -580,7 +582,8 @@ def main():
                 st.caption("⚠️ ISIN invalide")
             elif isin_valide_add:
                 st.caption("✅ ISIN valide")
-            if st.button("💾 Ajouter", key="btn_add_ticker"):
+
+            if st.button("� Rechercher", key="btn_rechercher_isin"):
                 if not nouvel_isin_add:
                     st.warning("ISIN vide.")
                 elif not isin_valide_add:
@@ -595,23 +598,41 @@ def main():
                         )
                         quotes = resp.json().get("quotes", [])
                         if quotes:
-                            ticker_trouve = quotes[0].get("symbol", "")
-                            nom_trouve = quotes[0].get("longname") or quotes[0].get("shortname") or ticker_trouve
+                            st.session_state["add_ticker_trouve"] = quotes[0].get("symbol", "")
+                            st.session_state["add_nom_trouve"] = quotes[0].get("longname") or quotes[0].get("shortname") or ""
+                            st.session_state["add_isin_trouve"] = nouvel_isin_add
+                            st.session_state["add_cat_trouve"] = cat_key_add
                         else:
-                            ticker_trouve = ""
-                            nom_trouve = ""
-                    except Exception:
-                        ticker_trouve = ""
-                        nom_trouve = ""
-                    if not ticker_trouve:
-                        st.error(f"Ticker introuvable pour l'ISIN {nouvel_isin_add} — vérifiez l'ISIN.")
-                    else:
-                        resultat = sauvegarder_ticker_mysql(utilisateur, ticker_trouve, nouvel_isin_add, cat_key_add, nom_trouve, "📈")
+                            st.session_state["add_ticker_trouve"] = ""
+                            st.error(f"Aucun résultat pour {nouvel_isin_add} — vérifiez l'ISIN.")
+                    except Exception as e:
+                        st.session_state["add_ticker_trouve"] = ""
+                        st.error(f"Erreur recherche : {e}")
+
+            # Étape 2 : validation si un résultat est trouvé
+            if st.session_state.get("add_ticker_trouve"):
+                tk = st.session_state["add_ticker_trouve"]
+                nm = st.session_state["add_nom_trouve"]
+                isv = st.session_state["add_isin_trouve"]
+                cat = st.session_state["add_cat_trouve"]
+                st.markdown(f"**Ticker :** `{tk}`")
+                nm_edit = st.text_input("Nom :", value=nm, key="add_nom_edit_input")
+                col_ok, col_ann = st.columns(2)
+                with col_ok:
+                    if st.button("✅ Confirmer", key="btn_confirmer_add"):
+                        resultat = sauvegarder_ticker_mysql(utilisateur, tk, isv, cat, nm_edit, "📈")
                         if resultat is True:
-                            st.success(f"✅ {ticker_trouve} — {nom_trouve} ajouté en {cat_key_add}")
+                            st.success(f"✅ {tk} — {nm_edit} ajouté en {cat}")
+                            for k in ["add_ticker_trouve", "add_nom_trouve", "add_isin_trouve", "add_cat_trouve"]:
+                                st.session_state.pop(k, None)
                             st.rerun()
                         else:
                             st.error(f"Erreur MySQL : {resultat}")
+                with col_ann:
+                    if st.button("❌ Annuler", key="btn_annuler_add"):
+                        for k in ["add_ticker_trouve", "add_nom_trouve", "add_isin_trouve", "add_cat_trouve"]:
+                            st.session_state.pop(k, None)
+                        st.rerun()
 
         # ── Onglet Modifier / Supprimer un ticker existant ──
         with onglet_edit:
