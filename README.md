@@ -32,7 +32,7 @@ CREATE TABLE isin_utilisateurs (
     id INT AUTO_INCREMENT PRIMARY KEY,
     utilisateur VARCHAR(50) NOT NULL,
     ticker VARCHAR(20) NOT NULL,
-    isin VARCHAR(12) NOT NULL,
+    isin VARCHAR(14) NOT NULL,
     categorie VARCHAR(20) NOT NULL DEFAULT 'PEA',
     date_modif TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_user_ticker (utilisateur, ticker)
