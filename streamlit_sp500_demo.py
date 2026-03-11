@@ -567,34 +567,24 @@ def main():
         # ── Onglet Ajouter un nouveau ticker ──
         with onglet_add:
             st.caption(f"Ajouter un ticker pour **{utilisateur}**")
-            nouveau_ticker = st.text_input(
-                "Ticker Yahoo Finance :",
-                key="nouveau_ticker_input",
-                placeholder="ex: AZN.L"
-            ).strip().upper()
-            nouveau_nom = st.text_input(
-                "Nom affiché :",
-                key="nouveau_nom_input",
-                placeholder="ex: AstraZeneca"
-            ).strip()
-            nouvel_isin_add = st.text_input(
-                "ISIN :",
-                key="nouvel_isin_add_input",
-                max_chars=14,
-                placeholder="ex: GB0009895292"
-            ).strip().upper()
+            col_t, col_i = st.columns([1, 1])
+            with col_t:
+                nouveau_ticker = st.text_input(
+                    "Ticker :", key="nouveau_ticker_input", placeholder="ex: AZN.L"
+                ).strip().upper()
+            with col_i:
+                nouvel_isin_add = st.text_input(
+                    "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
+                ).strip().upper()
             cat_add = st.radio(
-                "Catégorie :",
-                ["PEA", "COMPTE TITRES"],
-                horizontal=True,
-                key="cat_add_radio"
+                "Catégorie :", ["PEA", "COMPTE TITRES"], horizontal=True, key="cat_add_radio"
             )
             cat_key_add = "PEA" if cat_add == "PEA" else "TITRES"
             isin_valide_add = bool(re.match(r'^[A-Z]{2}[A-Z0-9]{9,12}$', nouvel_isin_add)) if nouvel_isin_add else False
             if nouvel_isin_add and not isin_valide_add:
-                st.caption("⚠️ Format invalide")
+                st.caption("⚠️ ISIN invalide")
             elif isin_valide_add:
-                st.caption("✅ Format valide")
+                st.caption("✅ ISIN valide")
             if st.button("💾 Ajouter", key="btn_add_ticker"):
                 if not nouveau_ticker:
                     st.warning("Ticker vide.")
@@ -603,7 +593,11 @@ def main():
                 elif not isin_valide_add:
                     st.error("Format ISIN invalide.")
                 else:
-                    nom_final = nouveau_nom if nouveau_nom else nouveau_ticker
+                    try:
+                        info = yf.Ticker(nouveau_ticker).info
+                        nom_final = info.get("longName") or info.get("shortName") or nouveau_ticker
+                    except Exception:
+                        nom_final = nouveau_ticker
                     resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, nouvel_isin_add, cat_key_add, nom_final, "📈")
                     if resultat is True:
                         st.success(f"✅ {nouveau_ticker} — {nom_final} ajouté en {cat_key_add}")
