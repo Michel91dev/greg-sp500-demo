@@ -561,7 +561,7 @@ def main():
         'font-size:0.9em;margin:6px 0 2px 0;">🔑 Gérer les ISIN</div>',
         unsafe_allow_html=True
     )
-    with st.sidebar.expander("", expanded=False):
+    with st.sidebar.expander("", expanded=True):
         onglet_add, onglet_edit = st.tabs(["➕ Ajouter", "✏️ Modifier"])
 
         # ── Onglet Ajouter un nouveau ticker ──
@@ -570,11 +570,11 @@ def main():
             col_t, col_i = st.columns([1, 1])
             with col_t:
                 nouveau_ticker = st.text_input(
-                    "Ticker :", key="nouveau_ticker_input", placeholder="ex: AZN.L"
+                    "Ticker Yahoo Finance :", key="nouveau_ticker_input", placeholder="ex: AZN.L"
                 ).strip().upper()
             with col_i:
                 nouvel_isin_add = st.text_input(
-                    "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
+                    "ISIN (optionnel) :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
                 ).strip().upper()
             cat_add = st.radio(
                 "Catégorie :", ["PEA", "COMPTE TITRES"], horizontal=True, key="cat_add_radio"
@@ -588,9 +588,7 @@ def main():
             if st.button("💾 Ajouter", key="btn_add_ticker"):
                 if not nouveau_ticker:
                     st.warning("Ticker vide.")
-                elif not nouvel_isin_add:
-                    st.warning("ISIN vide.")
-                elif not isin_valide_add:
+                elif nouvel_isin_add and not isin_valide_add:
                     st.error("Format ISIN invalide.")
                 else:
                     try:
@@ -598,7 +596,8 @@ def main():
                         nom_final = info.get("longName") or info.get("shortName") or nouveau_ticker
                     except Exception:
                         nom_final = nouveau_ticker
-                    resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, nouvel_isin_add, cat_key_add, nom_final, "📈")
+                    isin_final = nouvel_isin_add if nouvel_isin_add else ""
+                    resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, isin_final, cat_key_add, nom_final, "📈")
                     if resultat is True:
                         st.success(f"✅ {nouveau_ticker} — {nom_final} ajouté en {cat_key_add}")
                         st.rerun()
@@ -762,8 +761,10 @@ div[data-testid="stVerticalBlock"] { margin: 0 !important; padding: 0 !important
     </style>
     """, unsafe_allow_html=True)
 
-    st.title(f"📈 {nom_action}")
-    st.caption(f"Analyse technique de {nom_action}")
+    # Extraire le nom pur sans emoji pour le titre (évite les caractères parasites)
+    nom_pur_titre = nom_action.split(" ", 1)[-1] if nom_action and not nom_action[0].isascii() else nom_action
+    st.title(f"📈 {nom_pur_titre}")
+    st.caption(f"Analyse technique de {nom_pur_titre} ({ticker_symbol})")
 
     # Fonctions cachées pour éviter les appels API répétés
     @st.cache_data(ttl=900)
