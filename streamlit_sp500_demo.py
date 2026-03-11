@@ -292,7 +292,7 @@ def main():
     version = get_version()
     docs = get_indicator_docs()
 
-    st.set_page_config(page_title="Analyse Actions", page_icon="📈", layout="wide")
+    st.set_page_config(page_title="Ticker-Check-Roger", page_icon="�", layout="wide")
 
     # CSS global : alignement gauche des boutons sidebar
     st.markdown("""
