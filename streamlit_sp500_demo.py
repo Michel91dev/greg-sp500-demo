@@ -297,6 +297,22 @@ def main():
     [data-testid="stSidebarContent"] [data-testid="stHorizontalBlock"] {
         gap: 4px !important;
     }
+    /* Boutons PEA(bleu) CTO(vert) Annuler(rouge) — ciblage par aria-label */
+    button[aria-label="🏛️ PEA"] {
+        background-color: #1565C0 !important;
+        color: white !important;
+        border: none !important;
+    }
+    button[aria-label="📈 CTO"] {
+        background-color: #2E7D32 !important;
+        color: white !important;
+        border: none !important;
+    }
+    button[aria-label="❌"] {
+        background-color: #C62828 !important;
+        color: white !important;
+        border: none !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -645,15 +661,21 @@ def main():
                     else:
                         st.error(f"Erreur MySQL : {res}")
 
+                st.markdown(
+                    '<div style="background:#37474F;color:white;padding:4px 8px;border-radius:4px;'
+                    'text-align:center;font-size:0.85em;margin:6px 0 4px 0;font-weight:bold;">'
+                    'Confirmez : PEA, CTO ou Annulez</div>',
+                    unsafe_allow_html=True
+                )
                 col_pea, col_cto, col_ann = st.columns(3)
                 with col_pea:
-                    if st.button("🏛️ PEA", key="btn_confirmer_pea"):
+                    if st.button("🏛️ PEA", key="btn_confirmer_pea", use_container_width=True):
                         _sauvegarder_et_reset("PEA")
                 with col_cto:
-                    if st.button("📈 CTO", key="btn_confirmer_cto"):
+                    if st.button("📈 CTO", key="btn_confirmer_cto", use_container_width=True):
                         _sauvegarder_et_reset("TITRES")
                 with col_ann:
-                    if st.button("❌ Annuler", key="btn_annuler_add"):
+                    if st.button("❌", key="btn_annuler_add", use_container_width=True):
                         for k in ["add_ticker_trouve", "add_nom_trouve", "add_isin_trouve", "add_cat_trouve"]:
                             st.session_state.pop(k, None)
                         st.rerun()
