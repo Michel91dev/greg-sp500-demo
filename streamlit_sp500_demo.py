@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import re
+import requests
 import pymysql
 
 # Lire la version depuis le fichier
@@ -567,15 +568,9 @@ def main():
         # ── Onglet Ajouter un nouveau ticker ──
         with onglet_add:
             st.caption(f"Ajouter un ticker pour **{utilisateur}**")
-            col_t, col_i = st.columns([1, 1])
-            with col_t:
-                nouveau_ticker = st.text_input(
-                    "Ticker Yahoo Finance :", key="nouveau_ticker_input", placeholder="ex: AZN.L"
-                ).strip().upper()
-            with col_i:
-                nouvel_isin_add = st.text_input(
-                    "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
-                ).strip().upper()
+            nouvel_isin_add = st.text_input(
+                "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
+            ).strip().upper()
             cat_add = st.radio(
                 "Catégorie :", ["PEA", "COMPTE TITRES"], horizontal=True, key="cat_add_radio"
             )
@@ -586,24 +581,37 @@ def main():
             elif isin_valide_add:
                 st.caption("✅ ISIN valide")
             if st.button("💾 Ajouter", key="btn_add_ticker"):
-                if not nouveau_ticker:
-                    st.warning("Ticker vide.")
-                elif not nouvel_isin_add:
+                if not nouvel_isin_add:
                     st.warning("ISIN vide.")
                 elif not isin_valide_add:
                     st.error("Format ISIN invalide.")
                 else:
                     try:
-                        info = yf.Ticker(nouveau_ticker).info
-                        nom_final = info.get("longName") or info.get("shortName") or nouveau_ticker
+                        resp = requests.get(
+                            "https://query2.finance.yahoo.com/v1/finance/search",
+                            params={"q": nouvel_isin_add, "quotesCount": 1, "newsCount": 0},
+                            headers={"User-Agent": "Mozilla/5.0"},
+                            timeout=5
+                        )
+                        quotes = resp.json().get("quotes", [])
+                        if quotes:
+                            ticker_trouve = quotes[0].get("symbol", "")
+                            nom_trouve = quotes[0].get("longname") or quotes[0].get("shortname") or ticker_trouve
+                        else:
+                            ticker_trouve = ""
+                            nom_trouve = ""
                     except Exception:
-                        nom_final = nouveau_ticker
-                    resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, nouvel_isin_add, cat_key_add, nom_final, "📈")
-                    if resultat is True:
-                        st.success(f"✅ {nouveau_ticker} — {nom_final} ajouté en {cat_key_add}")
-                        st.rerun()
+                        ticker_trouve = ""
+                        nom_trouve = ""
+                    if not ticker_trouve:
+                        st.error(f"Ticker introuvable pour l'ISIN {nouvel_isin_add} — vérifiez l'ISIN.")
                     else:
-                        st.error(f"Erreur MySQL : {resultat}")
+                        resultat = sauvegarder_ticker_mysql(utilisateur, ticker_trouve, nouvel_isin_add, cat_key_add, nom_trouve, "📈")
+                        if resultat is True:
+                            st.success(f"✅ {ticker_trouve} — {nom_trouve} ajouté en {cat_key_add}")
+                            st.rerun()
+                        else:
+                            st.error(f"Erreur MySQL : {resultat}")
 
         # ── Onglet Modifier / Supprimer un ticker existant ──
         with onglet_edit:
