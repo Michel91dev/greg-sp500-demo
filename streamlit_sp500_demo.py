@@ -574,7 +574,7 @@ def main():
                 ).strip().upper()
             with col_i:
                 nouvel_isin_add = st.text_input(
-                    "ISIN (optionnel) :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
+                    "ISIN :", key="nouvel_isin_add_input", max_chars=14, placeholder="ex: GB0009895292"
                 ).strip().upper()
             cat_add = st.radio(
                 "Catégorie :", ["PEA", "COMPTE TITRES"], horizontal=True, key="cat_add_radio"
@@ -588,7 +588,9 @@ def main():
             if st.button("💾 Ajouter", key="btn_add_ticker"):
                 if not nouveau_ticker:
                     st.warning("Ticker vide.")
-                elif nouvel_isin_add and not isin_valide_add:
+                elif not nouvel_isin_add:
+                    st.warning("ISIN vide.")
+                elif not isin_valide_add:
                     st.error("Format ISIN invalide.")
                 else:
                     try:
@@ -596,8 +598,7 @@ def main():
                         nom_final = info.get("longName") or info.get("shortName") or nouveau_ticker
                     except Exception:
                         nom_final = nouveau_ticker
-                    isin_final = nouvel_isin_add if nouvel_isin_add else ""
-                    resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, isin_final, cat_key_add, nom_final, "📈")
+                    resultat = sauvegarder_ticker_mysql(utilisateur, nouveau_ticker, nouvel_isin_add, cat_key_add, nom_final, "📈")
                     if resultat is True:
                         st.success(f"✅ {nouveau_ticker} — {nom_final} ajouté en {cat_key_add}")
                         st.rerun()
