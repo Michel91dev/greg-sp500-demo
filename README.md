@@ -162,28 +162,37 @@ CREATE TABLE isin_utilisateurs (
     ticker      VARCHAR(20)  NOT NULL,
     isin        VARCHAR(14)  NOT NULL,
     categorie   VARCHAR(20)  NOT NULL DEFAULT 'PEA',
+    nom         VARCHAR(100) NOT NULL DEFAULT '',
+    emoji       VARCHAR(10)  NOT NULL DEFAULT '📈',
     date_modif  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_user_ticker (utilisateur, ticker)
 );
 ```
 
 > **Note :** `VARCHAR(14)` car certains ISIN (ex: `FR001400AYG6`) dépassent 12 caractères.
+> Les colonnes `nom` et `emoji` remplacent le dict hardcodé `actions_par_utilisateur` depuis la v2.7.0.
 
 ### Fonctions Python dans le code
 
 ```python
-get_connexion_mysql()                                    # Connexion via st.secrets["mysql"]
-charger_isin_mysql(utilisateur: str) -> dict             # SELECT au démarrage de l'app
-sauvegarder_isin_mysql(utilisateur, ticker, isin, cat)   # INSERT ... ON DUPLICATE KEY UPDATE
-supprimer_isin_mysql(utilisateur: str, ticker: str)      # DELETE par utilisateur + ticker
+get_connexion_mysql()                                              # Connexion via st.secrets["mysql"]
+charger_isin_mysql(utilisateur: str) -> dict                       # SELECT ticker→isin
+charger_tickers_mysql(utilisateur: str) -> dict                    # SELECT tickers+nom+emoji+categorie → sidebar
+sauvegarder_ticker_mysql(utilisateur, ticker, isin, cat, nom, emoji)  # INSERT complet (ajout nouveau ticker)
+sauvegarder_isin_mysql(utilisateur, ticker, isin, cat)             # UPDATE ISIN seul (onglet Modifier)
+supprimer_isin_mysql(utilisateur: str, ticker: str)                # DELETE par utilisateur + ticker
 ```
 
 ### Données initiales
 
-74 ISIN pré-chargés via `populate_isin.sql` :
+74 tickers/ISIN dans `isin_utilisateurs` (plus de hardcode dans le code depuis v2.7.0) :
 - **Michel** : 9 PEA + 15 TITRES = 24 lignes
 - **Romain** : 16 PEA + 2 TITRES = 18 lignes
 - **Roger** : 7 PEA + 25 TITRES = 32 lignes
+
+Scripts SQL de référence :
+- `populate_isin.sql` — insertion initiale des ISIN
+- `update_noms.sql` — mise à jour des noms et emojis
 
 ### Commandes de maintenance MySQL
 
@@ -310,6 +319,7 @@ Le fichier `version.txt` contient le numéro de version courant, affiché dans l
 | 2.6.1  | Persistance ISIN via MySQL (VPS Hostinger) |
 | 2.6.2  | Debug secrets MySQL — affichage erreur détaillé |
 | 2.6.3  | Interface ISIN refaite : onglets ➕ Ajouter / ✏️ Modifier |
+| 2.7.0  | **🚀 Zéro hardcode** — tickers chargés depuis MySQL, ajout ticker via UI |
 
 ---
 
