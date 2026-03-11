@@ -610,7 +610,7 @@ def main():
     st.sidebar.markdown(
         '<div style="background:linear-gradient(90deg,#FFAA80,#FF8C66);'
         'color:white;padding:4px 8px;border-radius:6px;font-weight:bold;'
-        'font-size:0.9em;margin:6px 0 2px 0;">🔑 Gérer les ISIN</div>',
+        'font-size:0.9em;margin:6px 0 2px 0;">➕ AJOUTER OU MODIFIER VOS TICKERS</div>',
         unsafe_allow_html=True
     )
     with st.sidebar.expander("", expanded=True):
