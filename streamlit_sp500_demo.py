@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
 import re
+import pymysql
 
 # Lire la version depuis le fichier
 def get_version():
@@ -159,6 +160,70 @@ def detecter_croisements_ma(data):
 
     return golden_crosses, death_crosses
 
+def get_connexion_mysql():
+    """Connexion MySQL via Streamlit Secrets."""
+    cfg = st.secrets["mysql"]
+    return pymysql.connect(
+        host=cfg["host"],
+        port=int(cfg["port"]),
+        database=cfg["database"],
+        user=cfg["user"],
+        password=cfg["password"],
+        charset="utf8mb4",
+        connect_timeout=5
+    )
+
+
+def charger_isin_mysql(utilisateur: str) -> dict:
+    """Charger les ISIN personnalisés depuis MySQL pour un utilisateur."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT ticker, isin FROM isin_utilisateurs WHERE utilisateur = %s",
+                (utilisateur,)
+            )
+            rows = cur.fetchall()
+        conn.close()
+        return {ticker: isin for ticker, isin in rows}
+    except Exception:
+        return {}
+
+
+def sauvegarder_isin_mysql(utilisateur: str, ticker: str, isin: str, categorie: str) -> bool:
+    """Sauvegarder ou mettre à jour un ISIN dans MySQL."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO isin_utilisateurs (utilisateur, ticker, isin, categorie)
+                   VALUES (%s, %s, %s, %s)
+                   ON DUPLICATE KEY UPDATE isin = %s, categorie = %s""",
+                (utilisateur, ticker, isin, categorie, isin, categorie)
+            )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def supprimer_isin_mysql(utilisateur: str, ticker: str) -> bool:
+    """Supprimer un ISIN de MySQL pour un utilisateur."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM isin_utilisateurs WHERE utilisateur = %s AND ticker = %s",
+                (utilisateur, ticker)
+            )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
 def main():
     version = get_version()
     docs = get_indicator_docs()
@@ -302,6 +367,10 @@ def main():
         "ALO.PA": "FR0000039300",
         "MTX.PA": "FR0014003TT8"
     }
+
+    # Charger les ISIN personnalisés depuis MySQL et les appliquer par-dessus les valeurs par défaut
+    isin_mysql = charger_isin_mysql(utilisateur)
+    isin_actions.update(isin_mysql)
 
     # Actions par utilisateur avec catégories PEA/TITRES (corrigées)
     actions_par_utilisateur = {
@@ -544,12 +613,7 @@ def main():
     )
     with st.sidebar.expander("", expanded=False):
         st.write("**Modifier ou ajouter un ISIN**")
-        # Initialiser le store ISIN dans session_state pour persistance
-        if "isin_custom" not in st.session_state:
-            st.session_state["isin_custom"] = {}
-
-        # Appliquer les ISIN personnalisés par-dessus les ISIN par défaut
-        isin_actions.update(st.session_state["isin_custom"])
+        # Les ISIN sont déjà chargés depuis MySQL dans isin_actions
 
         # Filtre par catégorie
         cat_isin = st.radio(
@@ -582,9 +646,11 @@ def main():
                 st.markdown('<span style="color:#FFAA80;">ℹ️ inconnu</span>', unsafe_allow_html=True)
         with col_cur2:
             if st.button("🗑️", key="btn_del_isin", help="Supprimer cet ISIN"):
-                st.session_state["isin_custom"].pop(ticker_isin, None)
-                isin_actions[ticker_isin] = "ISIN inconnu"
-                st.success(f"Supprimé")
+                if supprimer_isin_mysql(utilisateur, ticker_isin):
+                    st.success("Supprimé")
+                    st.rerun()
+                else:
+                    st.error("Erreur MySQL")
 
         nouvel_isin = st.text_input(
             "Nouvel ISIN (ex: FR0000035093) :",
@@ -602,8 +668,11 @@ def main():
             elif not isin_valide:
                 st.error("Format invalide. Ex: FR0000035093")
             else:
-                st.session_state["isin_custom"][ticker_isin] = nouvel_isin
-                st.success(f"✅ {nouvel_isin} enregistré")
+                if sauvegarder_isin_mysql(utilisateur, ticker_isin, nouvel_isin, cat_key):
+                    st.success(f"✅ {nouvel_isin} enregistré")
+                    st.rerun()
+                else:
+                    st.error("Erreur MySQL")
 
         if nouvel_isin and not isin_valide:
             st.caption("⚠️ Format invalide")
