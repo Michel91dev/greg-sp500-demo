@@ -667,12 +667,20 @@ def main():
                     'Confirmez : PEA, CTO ou Annulez</div>',
                     unsafe_allow_html=True
                 )
+                cat_existante = actions_categories.get(tk)  # "PEA", "TITRES" ou None
+                pea_desactive = cat_existante == "PEA"
+                cto_desactive = cat_existante == "TITRES"
+
                 col_pea, col_cto, col_ann = st.columns(3)
                 with col_pea:
-                    if st.button("🏛️ PEA", key="btn_confirmer_pea", use_container_width=True):
+                    if st.button("🏛️ PEA", key="btn_confirmer_pea", use_container_width=True,
+                                 disabled=pea_desactive,
+                                 help="Déjà en PEA" if pea_desactive else None):
                         _sauvegarder_et_reset("PEA")
                 with col_cto:
-                    if st.button("📈 CTO", key="btn_confirmer_cto", use_container_width=True):
+                    if st.button("📈 CTO", key="btn_confirmer_cto", use_container_width=True,
+                                 disabled=cto_desactive,
+                                 help="Déjà en CTO" if cto_desactive else None):
                         _sauvegarder_et_reset("TITRES")
                 with col_ann:
                     if st.button("❌", key="btn_annuler_add", use_container_width=True):
