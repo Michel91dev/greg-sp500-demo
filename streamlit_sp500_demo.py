@@ -615,6 +615,20 @@ def main():
                 nm = st.session_state["add_nom_trouve"]
                 isv = st.session_state["add_isin_trouve"]
                 cat = st.session_state["add_cat_trouve"]
+
+                # Alerte doublon
+                if tk in actions_disponibles:
+                    st.warning(f"⚠️ **{tk}** est déjà dans votre liste en {actions_categories.get(tk, '?')}.")
+
+                # Alerte éligibilité PEA
+                pays_pea = {"FR", "DE", "NL", "BE", "ES", "IT", "PT", "FI", "AT", "IE", "LU", "DK", "SE", "NO"}
+                pays_isin = isv[:2] if len(isv) >= 2 else ""
+                eligible_pea = pays_isin in pays_pea
+                if cat == "PEA" and not eligible_pea:
+                    st.warning(f"⚠️ L'ISIN `{isv}` (pays : **{pays_isin}**) n'est probablement **pas éligible au PEA**.")
+                elif cat == "TITRES" and eligible_pea:
+                    st.info(f"ℹ️ L'ISIN `{isv}` (pays : **{pays_isin}**) pourrait être **éligible au PEA**.")
+
                 st.markdown(f"**Ticker :** `{tk}`")
                 nm_edit = st.text_input("Nom :", value=nm, key="add_nom_edit_input")
                 col_ok, col_ann = st.columns(2)
@@ -626,6 +640,8 @@ def main():
                             for k in ["add_ticker_trouve", "add_nom_trouve", "add_isin_trouve", "add_cat_trouve"]:
                                 st.session_state.pop(k, None)
                             st.rerun()
+                        elif "Duplicate entry" in str(resultat):
+                            st.warning(f"⚠️ **{tk}** existe déjà en base pour {utilisateur}.")
                         else:
                             st.error(f"Erreur MySQL : {resultat}")
                 with col_ann:
