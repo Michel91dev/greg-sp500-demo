@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import re
 import requests
 import pymysql
+import bcrypt
 
 # Lire la version depuis le fichier
 def get_version():
@@ -288,11 +289,128 @@ def supprimer_isin_mysql(utilisateur: str, ticker: str) -> bool:
         return False
 
 
+def verifier_mdp(utilisateur: str, mdp: str) -> bool:
+    """Vérifier le mot de passe d'un utilisateur. Retourne True si correct."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute("SELECT password_hash FROM utilisateurs_auth WHERE utilisateur = %s", (utilisateur,))
+            row = cur.fetchone()
+        conn.close()
+        if not row:
+            return False
+        return bcrypt.checkpw(mdp.encode("utf-8"), row[0].encode("utf-8"))
+    except Exception:
+        return False
+
+
+def get_role(utilisateur: str) -> str:
+    """Retourne le rôle de l'utilisateur ('admin', 'user') ou '' si inexistant."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute("SELECT role FROM utilisateurs_auth WHERE utilisateur = %s", (utilisateur,))
+            row = cur.fetchone()
+        conn.close()
+        return row[0] if row else ""
+    except Exception:
+        return ""
+
+
+def charger_utilisateurs_auth() -> list:
+    """Retourne la liste de tous les utilisateurs enregistrés."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute("SELECT utilisateur, role FROM utilisateurs_auth ORDER BY utilisateur")
+            rows = cur.fetchall()
+        conn.close()
+        return rows
+    except Exception:
+        return []
+
+
+def set_mdp(utilisateur: str, nouveau_mdp: str) -> bool:
+    """Définir ou réinitialiser le mot de passe d'un utilisateur."""
+    try:
+        h = bcrypt.hashpw(nouveau_mdp.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO utilisateurs_auth (utilisateur, password_hash) VALUES (%s, %s) "
+                "ON DUPLICATE KEY UPDATE password_hash = %s",
+                (utilisateur, h, h)
+            )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def creer_utilisateur(utilisateur: str, mdp: str, role: str = "user") -> bool:
+    """Créer un nouvel utilisateur avec son mot de passe hashé."""
+    try:
+        h = bcrypt.hashpw(mdp.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO utilisateurs_auth (utilisateur, password_hash, role) VALUES (%s, %s, %s)",
+                (utilisateur, h, role)
+            )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def supprimer_utilisateur(utilisateur: str) -> bool:
+    """Supprimer un utilisateur de la table auth."""
+    try:
+        conn = get_connexion_mysql()
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM utilisateurs_auth WHERE utilisateur = %s", (utilisateur,))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def afficher_login():
+    """Afficher l'écran de login. Retourne False si non authentifié."""
+    if st.session_state.get("authentifie"):
+        return True
+
+    st.markdown(
+        '<h2 style="text-align:center;margin-top:60px;">📊 Ticker-Check-Roger</h2>',
+        unsafe_allow_html=True
+    )
+    col_mid = st.columns([2, 2, 2])[1]
+    with col_mid:
+        with st.form("form_login"):
+            nom = st.text_input("Utilisateur")
+            mdp = st.text_input("Mot de passe", type="password")
+            if st.form_submit_button("Connexion", use_container_width=True):
+                if verifier_mdp(nom, mdp):
+                    st.session_state["authentifie"] = True
+                    st.session_state["utilisateur_connecte"] = nom
+                    st.session_state["role_connecte"] = get_role(nom)
+                    st.rerun()
+                else:
+                    st.error("Identifiants incorrects.")
+    return False
+
+
 def main():
+    st.set_page_config(page_title="Ticker-Check-Roger", page_icon="📊", layout="wide")
+
     version = get_version()
     docs = get_indicator_docs()
 
-    st.set_page_config(page_title="Ticker-Check-Roger", page_icon="�", layout="wide")
+    if not afficher_login():
+        st.stop()
 
     # CSS global : alignement gauche des boutons sidebar
     st.markdown("""
@@ -343,22 +461,23 @@ def main():
 
     couleurs_utilisateur = {"Michel": "#4682B4", "Romain": "#9370DB", "Roger": "#DAA520"}
 
-    st.sidebar.subheader("👤 Utilisateur")
-    utilisateur = st.sidebar.radio(
-        "Choisir :",
-        ["Michel", "Romain", "Roger"],
-        key="utilisateur",
-        horizontal=True,
-        label_visibility="collapsed"
-    )
+    utilisateur = st.session_state.get("utilisateur_connecte", "")
+    couleur_u = couleurs_utilisateur.get(utilisateur, "#555")
 
-    # Bandeau utilisateur actif
-    st.sidebar.markdown(
-        f'<div style="background-color:{couleurs_utilisateur[utilisateur]};color:white;'
-        f'padding:4px 8px;border-radius:4px;text-align:center;font-weight:bold;">'
-        f'👤 {utilisateur}</div>',
-        unsafe_allow_html=True
-    )
+    # Bandeau utilisateur actif + déconnexion
+    col_u, col_deco = st.sidebar.columns([4, 1])
+    with col_u:
+        st.markdown(
+            f'<div style="background-color:{couleur_u};color:white;'
+            f'padding:4px 8px;border-radius:4px;text-align:center;font-weight:bold;margin-bottom:4px;">'
+            f'👤 {utilisateur}</div>',
+            unsafe_allow_html=True
+        )
+    with col_deco:
+        if st.button("🚪", help="Déconnexion", use_container_width=True):
+            for k in ["authentifie", "utilisateur_connecte", "role_connecte"]:
+                st.session_state.pop(k, None)
+            st.rerun()
 
     # ISIN des actions pour affichage optionnel
     isin_actions = {
@@ -802,6 +921,57 @@ def main():
                         st.rerun()
                     else:
                         st.error("Erreur MySQL")
+
+        # ── Onglet Admin ──
+        if st.session_state.get("role_connecte") == "admin":
+            with st.expander("🔐 Administration utilisateurs", expanded=False):
+                st.markdown("**Utilisateurs enregistrés :**")
+                for u, r in charger_utilisateurs_auth():
+                    st.markdown(f"- `{u}` — *{r}*")
+
+                st.markdown("---")
+                with st.form("form_creer_user"):
+                    st.markdown("**Créer un utilisateur**")
+                    new_nom = st.text_input("Nom", key="admin_new_nom")
+                    new_mdp = st.text_input("Mot de passe", type="password", key="admin_new_mdp")
+                    new_role = st.radio("Rôle", ["user", "admin"], horizontal=True, key="admin_new_role")
+                    if st.form_submit_button("➕ Créer", use_container_width=True):
+                        if new_nom and new_mdp:
+                            if creer_utilisateur(new_nom, new_mdp, new_role):
+                                st.success(f"✅ {new_nom} créé")
+                                st.rerun()
+                            else:
+                                st.error("Erreur (utilisateur déjà existant ?)")
+                        else:
+                            st.warning("Nom et mot de passe requis.")
+
+                st.markdown("---")
+                with st.form("form_reset_mdp"):
+                    st.markdown("**Réinitialiser un mot de passe**")
+                    liste_u = [u for u, _ in charger_utilisateurs_auth()]
+                    user_sel = st.selectbox("Utilisateur", liste_u, key="admin_reset_sel")
+                    nouveau_mdp = st.text_input("Nouveau mot de passe", type="password", key="admin_reset_mdp")
+                    if st.form_submit_button("💾 Enregistrer", use_container_width=True):
+                        if nouveau_mdp:
+                            if set_mdp(user_sel, nouveau_mdp):
+                                st.success(f"✅ Mot de passe de {user_sel} mis à jour")
+                            else:
+                                st.error("Erreur MySQL")
+                        else:
+                            st.warning("Mot de passe vide.")
+
+                st.markdown("---")
+                with st.form("form_suppr_user"):
+                    st.markdown("**Supprimer un utilisateur**")
+                    liste_u2 = [u for u, _ in charger_utilisateurs_auth() if u != utilisateur]
+                    user_del = st.selectbox("Utilisateur", liste_u2, key="admin_del_sel") if liste_u2 else None
+                    if st.form_submit_button("🗑️ Supprimer", use_container_width=True):
+                        if user_del:
+                            if supprimer_utilisateur(user_del):
+                                st.success(f"✅ {user_del} supprimé")
+                                st.rerun()
+                            else:
+                                st.error("Erreur MySQL")
 
         # ── Onglet Export base de données ──
         with onglet_dl:
