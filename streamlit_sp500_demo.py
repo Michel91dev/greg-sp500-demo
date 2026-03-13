@@ -379,7 +379,7 @@ def supprimer_utilisateur(utilisateur: str) -> bool:
         return False
 
 
-def afficher_login(cookie_mgr):
+def afficher_login(cookie_mgr, version=""):
     """Afficher l'écran de login. Retourne False si non authentifié."""
     # Déjà authentifié en session
     if st.session_state.get("authentifie"):
@@ -395,7 +395,8 @@ def afficher_login(cookie_mgr):
         return True
 
     st.markdown(
-        '<h2 style="text-align:center;margin-top:60px;">📊 Ticker-Check-Roger</h2>',
+        f'<h2 style="text-align:center;margin-top:60px;">📊 Ticker-Check-Roger</h2>'
+        f'<p style="text-align:center;color:#888;font-size:0.85em;margin-top:-10px;">v{version}</p>',
         unsafe_allow_html=True
     )
     col_mid = st.columns([2, 2, 2])[1]
@@ -427,7 +428,7 @@ def main():
     version = get_version()
     docs = get_indicator_docs()
 
-    if not afficher_login(cookie_mgr):
+    if not afficher_login(cookie_mgr, version):
         st.stop()
 
     # CSS global : alignement gauche des boutons sidebar
