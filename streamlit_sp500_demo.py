@@ -424,8 +424,10 @@ def afficher_login(cookie_mgr, version=""):
 def main():
     st.set_page_config(page_title="Ticker-Check-Roger", page_icon="📊", layout="wide")
 
-    # Instancier le cookie controller une seule fois par session
-    cookie_mgr = CookieController()
+    # Instancier le cookie controller une seule fois par session (évite reruns parasites)
+    if "cookie_mgr" not in st.session_state:
+        st.session_state["cookie_mgr"] = CookieController()
+    cookie_mgr = st.session_state["cookie_mgr"]
 
     version = get_version()
     docs = get_indicator_docs()
