@@ -482,8 +482,27 @@ def main():
 
     couleurs_utilisateur = {"Michel": "#4682B4", "Romain": "#9370DB", "Roger": "#DAA520"}
 
-    utilisateur = st.session_state.get("utilisateur_connecte", "")
-    couleur_u = couleurs_utilisateur.get(utilisateur, "#555")
+    utilisateur_connecte = st.session_state.get("utilisateur_connecte", "")
+    role_connecte = st.session_state.get("role_connecte", "user")
+
+    # Admin : peut visualiser le profil d'un autre utilisateur
+    if role_connecte == "admin":
+        tous_users = [u for u, _ in charger_utilisateurs_auth()]
+        if utilisateur_connecte in tous_users:
+            tous_users.remove(utilisateur_connecte)
+            tous_users.insert(0, utilisateur_connecte)
+        profil_idx = tous_users.index(st.session_state.get("profil_vue", utilisateur_connecte)) \
+            if st.session_state.get("profil_vue", utilisateur_connecte) in tous_users else 0
+        profil_vue = st.sidebar.radio(
+            "👁️ Profil affiché :", tous_users, index=profil_idx,
+            horizontal=True, key="radio_profil_vue"
+        )
+        st.session_state["profil_vue"] = profil_vue
+        utilisateur = profil_vue
+    else:
+        utilisateur = utilisateur_connecte
+
+    couleur_u = couleurs_utilisateur.get(utilisateur_connecte, "#555")
 
     # Bandeau utilisateur actif + déconnexion
     col_u, col_deco = st.sidebar.columns([4, 1])
