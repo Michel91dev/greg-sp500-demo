@@ -15,7 +15,7 @@ import re
 import requests
 import pymysql
 import bcrypt
-import extra_streamlit_components as stx
+from streamlit_cookies_controller import CookieController
 
 # Lire la version depuis le fichier
 def get_version():
@@ -386,8 +386,11 @@ def afficher_login(cookie_mgr, version=""):
         return True
 
     # Vérifier le cookie persistant
-    cookie_user = cookie_mgr.get("tcr_user")
-    cookie_role = cookie_mgr.get("tcr_role")
+    try:
+        cookie_user = cookie_mgr.get("tcr_user")
+        cookie_role = cookie_mgr.get("tcr_role")
+    except Exception:
+        cookie_user, cookie_role = None, None
     if cookie_user and cookie_role:
         st.session_state["authentifie"] = True
         st.session_state["utilisateur_connecte"] = cookie_user
@@ -410,9 +413,8 @@ def afficher_login(cookie_mgr, version=""):
                     st.session_state["authentifie"] = True
                     st.session_state["utilisateur_connecte"] = nom
                     st.session_state["role_connecte"] = role
-                    expires = datetime.now() + timedelta(days=30)
-                    cookie_mgr.set("tcr_user", nom, expires_at=expires)
-                    cookie_mgr.set("tcr_role", role, expires_at=expires)
+                    cookie_mgr.set("tcr_user", nom)
+                    cookie_mgr.set("tcr_role", role)
                     st.rerun()
                 else:
                     st.error("Identifiants incorrects.")
@@ -422,8 +424,8 @@ def afficher_login(cookie_mgr, version=""):
 def main():
     st.set_page_config(page_title="Ticker-Check-Roger", page_icon="📊", layout="wide")
 
-    # Instancier le cookie manager une seule fois par session
-    cookie_mgr = stx.CookieManager(key="tcr_cookie_mgr")
+    # Instancier le cookie controller une seule fois par session
+    cookie_mgr = CookieController()
 
     version = get_version()
     docs = get_indicator_docs()
@@ -496,8 +498,11 @@ def main():
         if st.button("❌", help="Se déconnecter", use_container_width=True):
             for k in ["authentifie", "utilisateur_connecte", "role_connecte"]:
                 st.session_state.pop(k, None)
-            cookie_mgr.delete("tcr_user")
-            cookie_mgr.delete("tcr_role")
+            try:
+                cookie_mgr.remove("tcr_user")
+                cookie_mgr.remove("tcr_role")
+            except Exception:
+                pass
             st.rerun()
 
     # ISIN des actions pour affichage optionnel

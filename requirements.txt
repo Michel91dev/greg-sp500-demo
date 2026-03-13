@@ -4,4 +4,4 @@ plotly>=5.17.0
 pandas>=2.2.0
 pymysql>=1.1.0
 bcrypt>=4.0.0
-extra-streamlit-components>=0.1.60
+streamlit-cookies-controller
