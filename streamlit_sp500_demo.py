@@ -953,14 +953,14 @@ def main():
             'font-size:0.9em;margin:10px 0 2px 0;">🔐 ADMINISTRATION</div>',
             unsafe_allow_html=True
         )
-        with st.sidebar.expander("Gérer les utilisateurs", expanded=False):
-            st.markdown("**Utilisateurs enregistrés :**")
+        tab_liste, tab_creer, tab_reset, tab_suppr = st.sidebar.tabs(
+            ["👥 Liste", "➕ Créer", "🔑 MDP", "🗑️ Suppr."]
+        )
+        with tab_liste:
             for u, r in charger_utilisateurs_auth():
                 st.markdown(f"- `{u}` — *{r}*")
-
-            st.markdown("---")
+        with tab_creer:
             with st.form("form_creer_user"):
-                st.markdown("**Créer un utilisateur**")
                 new_nom = st.text_input("Nom", key="admin_new_nom")
                 new_mdp = st.text_input("Mot de passe", type="password", key="admin_new_mdp")
                 new_role = st.radio("Rôle", ["user", "admin"], horizontal=True, key="admin_new_role")
@@ -970,28 +970,24 @@ def main():
                             st.success(f"✅ {new_nom} créé")
                             st.rerun()
                         else:
-                            st.error("Erreur (utilisateur déjà existant ?)")
+                            st.error("Utilisateur déjà existant ?")
                     else:
                         st.warning("Nom et mot de passe requis.")
-
-            st.markdown("---")
+        with tab_reset:
             with st.form("form_reset_mdp"):
-                st.markdown("**Réinitialiser un mot de passe**")
                 liste_u = [u for u, _ in charger_utilisateurs_auth()]
                 user_sel = st.selectbox("Utilisateur", liste_u, key="admin_reset_sel")
                 nouveau_mdp = st.text_input("Nouveau mot de passe", type="password", key="admin_reset_mdp")
                 if st.form_submit_button("💾 Enregistrer", use_container_width=True):
                     if nouveau_mdp:
                         if set_mdp(user_sel, nouveau_mdp):
-                            st.success(f"✅ Mot de passe de {user_sel} mis à jour")
+                            st.success(f"✅ {user_sel} mis à jour")
                         else:
                             st.error("Erreur MySQL")
                     else:
                         st.warning("Mot de passe vide.")
-
-            st.markdown("---")
+        with tab_suppr:
             with st.form("form_suppr_user"):
-                st.markdown("**Supprimer un utilisateur**")
                 liste_u2 = [u for u, _ in charger_utilisateurs_auth() if u != utilisateur]
                 user_del = st.selectbox("Utilisateur", liste_u2, key="admin_del_sel") if liste_u2 else None
                 if st.form_submit_button("🗑️ Supprimer", use_container_width=True):
