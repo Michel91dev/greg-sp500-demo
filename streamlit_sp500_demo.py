@@ -379,19 +379,13 @@ def supprimer_utilisateur(utilisateur: str) -> bool:
         return False
 
 
-def get_cookie_manager():
-    """Retourne le gestionnaire de cookies (singleton par clé fixe)."""
-    return stx.CookieManager(key="tcr_cookie_mgr")
-
-
-def afficher_login():
+def afficher_login(cookie_mgr):
     """Afficher l'écran de login. Retourne False si non authentifié."""
     # Déjà authentifié en session
     if st.session_state.get("authentifie"):
         return True
 
     # Vérifier le cookie persistant
-    cookie_mgr = get_cookie_manager()
     cookie_user = cookie_mgr.get("tcr_user")
     cookie_role = cookie_mgr.get("tcr_role")
     if cookie_user and cookie_role:
@@ -415,7 +409,6 @@ def afficher_login():
                     st.session_state["authentifie"] = True
                     st.session_state["utilisateur_connecte"] = nom
                     st.session_state["role_connecte"] = role
-                    # Écrire le cookie persistant (30 jours)
                     expires = datetime.now() + timedelta(days=30)
                     cookie_mgr.set("tcr_user", nom, expires_at=expires)
                     cookie_mgr.set("tcr_role", role, expires_at=expires)
@@ -428,10 +421,13 @@ def afficher_login():
 def main():
     st.set_page_config(page_title="Ticker-Check-Roger", page_icon="📊", layout="wide")
 
+    # Instancier le cookie manager une seule fois par session
+    cookie_mgr = stx.CookieManager(key="tcr_cookie_mgr")
+
     version = get_version()
     docs = get_indicator_docs()
 
-    if not afficher_login():
+    if not afficher_login(cookie_mgr):
         st.stop()
 
     # CSS global : alignement gauche des boutons sidebar
@@ -499,7 +495,6 @@ def main():
         if st.button("❌", help="Se déconnecter", use_container_width=True):
             for k in ["authentifie", "utilisateur_connecte", "role_connecte"]:
                 st.session_state.pop(k, None)
-            cookie_mgr = get_cookie_manager()
             cookie_mgr.delete("tcr_user")
             cookie_mgr.delete("tcr_role")
             st.rerun()
